@@ -9,15 +9,7 @@ from classes import settings
 from classes import topics
 
 
-def init(app, user_datastore):
-
-    topicList = [("Other","None")]
-    for topic in topicList:
-        existingTopic = topics.topics.query.filter_by(name=topic[0]).first()
-        if existingTopic is None:
-            newTopic = topics.topics(topic[0], topic[1])
-            db.session.add(newTopic)
-    db.session.commit()
+def init(app):
 
     # Note: for a freshly installed system, sysSettings is None!
     sysSettings = settings.settings.query.first()
