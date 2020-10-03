@@ -45,15 +45,6 @@ def strip_html(html):
     s.feed(html)
     return s.get_data()
 
-def videoupload_allowedExt(filename, allowedExtensions):
-    if not "." in filename:
-        return False
-    ext = filename.rsplit(".", 1)[1]
-    if ext.upper() in allowedExtensions:
-        return True
-    else:
-        return False
-
 def formatSiteAddress(systemAddress):
     try:
         ipaddress.ip_address(systemAddress)
@@ -103,20 +94,4 @@ def newLog(logType, message):
     newLogItem = logs.logs(datetime.datetime.now(), str(message), logType)
     db.session.add(newLogItem)
     db.session.commit()
-    return True
-
-def rebuildOSPEdgeConf():
-    f = open("conf/osp-edge.conf", "w")
-    ospEdgeQuery = settings.edgeStreamer.query.filter_by(active=True).all()
-    f.write('split_clients "${remote_addr}AAA" $ospedge_node {\n')
-    if ospEdgeQuery != []:
-        for edge in ospEdgeQuery:
-            if edge.port == 80 or edge.port == 443:
-                f.write(str(edge.loadPct) + "% " + edge.address + ";\n")
-            else:
-                f.write(str(edge.loadPct) + "% " + edge.address + ":" + str(edge.port) +";\n" )
-    else:
-        f.write("100% 127.0.0.1;\n")
-    f.write("}")
-    f.close()
     return True
