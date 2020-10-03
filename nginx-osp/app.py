@@ -149,13 +149,11 @@ except Exception as e:
 from blueprints.errorhandler import errorhandler_bp
 from blueprints.rtmp import rtmp_bp
 from blueprints.root import root_bp
-from blueprints.settings import settings_bp
 
 # Register all Blueprints
 app.register_blueprint(errorhandler_bp)
 app.register_blueprint(rtmp_bp)
 app.register_blueprint(root_bp)
-app.register_blueprint(settings_bp)
 
 #----------------------------------------------------------------------------#
 # Template Filter Imports
