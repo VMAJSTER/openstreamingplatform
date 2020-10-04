@@ -6,16 +6,10 @@ from sqlalchemy.sql.expression import func
 
 from classes.shared import db
 from classes import Sec
-from classes import RecordedVideo
-from classes import subscriptions
-from classes import topics
-from classes import notifications
+
 from classes import Channel
-from classes import Stream
 from classes import settings
 
-from functions import themes
-from functions import system
 from functions import securityFunc
 
 root_bp = Blueprint('root', __name__)

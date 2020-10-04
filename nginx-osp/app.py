@@ -104,6 +104,10 @@ from functions.ejabberdctl import ejabberdctl
 #----------------------------------------------------------------------------#
 # Begin App Initialization
 #----------------------------------------------------------------------------#
+# Begin Database Initialization
+from classes.shared import db
+db.init_app(app)
+db.app = app
 
 # Initialize Flask-CORS Config
 cors = CORS(app, resources={r"/apiv1/*": {"origins": "*"}})
@@ -136,22 +140,13 @@ from classes.shared import email
 email.init_app(app)
 email.app = app
 
-# Perform XMPP Sanity Check
-from functions import xmpp
-try:
-    results = xmpp.sanityCheck()
-except Exception as e:
-    print("XMPP Sanity Check Failed - " + str(e))
-
 #----------------------------------------------------------------------------#
 # Blueprint Filter Imports
 #----------------------------------------------------------------------------#
-from blueprints.errorhandler import errorhandler_bp
 from blueprints.rtmp import rtmp_bp
 from blueprints.root import root_bp
 
 # Register all Blueprints
-app.register_blueprint(errorhandler_bp)
 app.register_blueprint(rtmp_bp)
 app.register_blueprint(root_bp)
 

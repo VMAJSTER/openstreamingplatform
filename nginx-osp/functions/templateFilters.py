@@ -8,9 +8,6 @@ from globals import globalvars
 from classes import Sec
 from classes import topics
 
-from functions import votes
-from functions import commentsFunc
-
 def init(context):
     context.jinja_env.filters['normalize_uuid'] = normalize_uuid
     context.jinja_env.filters['normalize_urlroot'] = normalize_urlroot
@@ -21,10 +18,6 @@ def init(context):
     context.jinja_env.filters['hms_format'] = hms_format
     context.jinja_env.filters['get_topicName'] = get_topicName
     context.jinja_env.filters['get_userName'] = get_userName
-    context.jinja_env.filters['get_Video_Upvotes'] = get_Video_Upvotes_Filter
-    context.jinja_env.filters['get_Stream_Upvotes'] = get_Stream_Upvotes_Filter
-    context.jinja_env.filters['get_Clip_Upvotes'] = get_Clip_Upvotes_Filter
-    context.jinja_env.filters['get_Video_Comments'] = get_Video_Comments_Filter
     context.jinja_env.filters['get_pictureLocation'] = get_pictureLocation
     context.jinja_env.filters['get_diskUsage'] = get_diskUsage
     context.jinja_env.filters['testList'] = testList
@@ -103,21 +96,6 @@ def get_userName(userID):
     else:
         return userQuery.username
 
-def get_Video_Upvotes_Filter(videoID):
-    result = votes.get_Video_Upvotes(videoID)
-    return result
-
-def get_Stream_Upvotes_Filter(videoID):
-    result = votes.get_Stream_Upvotes(videoID)
-    return result
-
-def get_Clip_Upvotes_Filter(videoID):
-    result = votes.get_Clip_Upvotes(videoID)
-    return result
-
-def get_Video_Comments_Filter(videoID):
-    result = commentsFunc.get_Video_Comments(videoID)
-    return result
 
 def get_pictureLocation(userID):
     userQuery = Sec.User.query.filter_by(id=int(userID)).first()
