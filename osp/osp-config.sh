@@ -82,19 +82,6 @@ reset_ejabberd() {
   sudo systemctl restart osp.target
 }
 
-reset_nginx() {
-   RESETLOG="/opt/osp/logs/reset.log"
-   echo 25 | dialog --title "Reset Nginx-RTMP Configuration" --gauge "Backup Nginx-RTMP Configurations" 10 70 0
-   sudo cp /usr/local/nginx/conf/nginx.conf /usr/local/nginx/conf/nginx.conf.bak >> $RESETLOG 2>&1
-   echo 50 | dialog --title "Reset Nginx-RTMP Configuration" --gauge "Copying Nginx-RTMP Configurations" 10 70 0
-   sudo cp /opt/osp/setup/nginx/nginx.conf /usr/local/nginx/conf >> $RESETLOG 2>&1
-   sudo cp /opt/osp/setup/nginx/osp-rtmp.conf /usr/local/nginx/conf >> $RESETLOG 2>&1
-   sudo cp /opt/osp/setup/nginx/osp-redirects.conf /usr/local/nginx/conf >> $RESETLOG 2>&1
-   sudo cp /opt/osp/setup/nginx/osp-socketio.conf /usr/local/nginx/conf >> $RESETLOG 2>&1
-   echo 50 | dialog --title "Reset Nginx-RTMP Configuration" --gauge "Restarting Nginx" 10 70 0
-   sudo systemctl restart nginx-osp $RESETLOG 2>&1
-}
-
 upgrade_db() {
   UPGRADELOG="/opt/osp/logs/upgrade.log"
   echo 0 | dialog --title "Upgrading Database" --gauge "Stopping OSP" 10 70 0
@@ -140,45 +127,18 @@ upgrade_osp() {
    echo 100 | dialog --title "Upgrading OSP" --gauge "Complete" 10 70 0
 }
 
-install_osp() {
-  cwd=$PWD
-  installLog=$cwd/install.log
-
-  echo "Starting OSP Install" > $installLog
-  echo 0 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
-
-  if  $arch
+install_ffmpeg() {
+  #Setup FFMPEG for recordings and Thumbnails
+  echo 80 | dialog --title "Installing OSP" --gauge "Installing FFMPEG" 10 70 0
+  if [ "$arch" = "false" ]
   then
-          echo "Installing for Arch" >> $installLog
-          sudo pacman -S python-pip base-devel unzip wget git redis gunicorn uwsgi-plugin-python curl ffmpeg --needed --noconfirm >> $installLog 2>&1
-          echo 5 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
-          sudo pip3 install -r $cwd/setup/requirements.txt
-  else
-          echo "Installing for Debian - based" >> $installLog 2>&1
-
-          # Get Dependencies
-          sudo apt-get install build-essential libpcre3 libpcre3-dev libssl-dev unzip libpq-dev curl git -y >> $installLog 2>&1
-          echo 5 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
-          # Setup Python
-          sudo apt-get install python3 python3-pip uwsgi-plugin-python3 python3-dev python3-setuptools -y >> $installLog 2>&1
-          echo 7 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
-          sudo pip3 install wheel >> $installLog 2>&1
-          sudo pip3 install -r $cwd/setup/requirements.txt >> $installLog 2>&1
-
-          # Install Redis
-          sudo apt-get install redis -y >> $installLog 2>&1
+          sudo add-apt-repository ppa:jonathonf/ffmpeg-4 -y >> $installLog 2>&1
+          sudo apt-get update >> $installLog 2>&1
+          sudo apt-get install ffmpeg -y >> $installLog 2>&1
   fi
-  echo 10 | dialog --title "Installing OSP" --gauge "Configuring Redis" 10 70 0
-  sudo sed -i 's/appendfsync everysec/appendfsync no/' /etc/redis/redis.conf >> $installLog 2>&1
-  sudo systemctl restart redis >> $installLog 2>&1
+}
 
-
-  # Setup OSP Directory
-  echo 20 | dialog --title "Installing OSP" --gauge "Setting up OSP Directory" 10 70 0
-  mkdir -p /opt/osp >> $installLog 2>&1
-  sudo cp -rf -R $cwd/* /opt/osp >> $installLog 2>&1
-  sudo cp -rf -R $cwd/.git /opt/osp >> $installLog 2>&1
-
+install_nginx_core() {
   # Build Nginx with RTMP module
   echo 25 | dialog --title "Installing OSP" --gauge "Downloading Nginx Source" 10 70 0
   if cd /tmp
@@ -212,9 +172,14 @@ install_osp() {
 
   # Grab Configuration
   echo 37 | dialog --title "Installing OSP" --gauge "Copying Nginx Config Files" 10 70 0
-  if cd $cwd/setup/nginx
+  if cd $cwd/nginx-core/nginx
   then
-          sudo cp *.conf /usr/local/nginx/conf/ >> $installLog 2>&1
+          sudo cp $cwd/nginx-core/nginx.conf /usr/local/nginx/conf/ >> $installLog 2>&1
+          sudo cp $cwd/nginx-core/mime.types /usr/local/nginx/conf/ >> $installLog 2>&1
+          sudo mkdir /usr/local/nginx/conf/locations
+          sudo mkdir /usr/local/nginx/conf/upstream
+          sudo mkdir /usr/local/nginx/conf/servers
+          sudo mkdir /usr/local/nginx/conf/services
   else
           echo "Unable to find downloaded Nginx config directory.  Aborting." >> $installLog 2>&1
           exit 1
@@ -223,7 +188,7 @@ install_osp() {
   echo 38 | dialog --title "Installing OSP" --gauge "Setting up Nginx SystemD" 10 70 0
   if cd $cwd/setup/nginx
   then
-          sudo cp nginx-osp.service /etc/systemd/system/nginx-osp.service >> $installLog 2>&1
+          sudo cp $cwd/nginx-core/nginx-osp.service /etc/systemd/system/nginx-osp.service >> $installLog 2>&1
           sudo systemctl daemon-reload >> $installLog 2>&1
           sudo systemctl enable nginx-osp.service >> $installLog 2>&1
   else
@@ -231,6 +196,35 @@ install_osp() {
           exit 1
   fi
 
+  install_ffmpeg
+
+  # Create HLS directory
+  echo 60 | dialog --title "Installing OSP" --gauge "Creating OSP Video Directories" 10 70 0
+  sudo mkdir -p "$web_root" >> $installLog 2>&1
+  sudo mkdir -p "$web_root/live" >> $installLog 2>&1
+  sudo mkdir -p "$web_root/videos" >> $installLog 2>&1
+  sudo mkdir -p "$web_root/live-adapt" >> $installLog 2>&1
+  sudo mkdir -p "$web_root/stream-thumb" >> $installLog 2>&1
+
+  echo 70 | dialog --title "Installing OSP" --gauge "Setting Ownership of OSP Video Directories" 10 70 0
+  sudo chown -R "$http_user:$http_user" "$web_root" >> $installLog 2>&1
+
+  # Start Nginx
+  echo 100 | dialog --title "Installing OSP" --gauge "Starting Nginx" 10 70 0
+  sudo systemctl start nginx-osp.service >> $installLog 2>&1
+  sudo mv $installLog /opt/osp/logs >> /dev/null 2>&1
+
+}
+
+install_redis() {
+  # Install Redis
+  sudo apt-get install redis -y >> $installLog 2>&1
+  echo 10 | dialog --title "Installing OSP" --gauge "Configuring Redis" 10 70 0
+  sudo sed -i 's/appendfsync everysec/appendfsync no/' /etc/redis/redis.conf >> $installLog 2>&1
+  sudo systemctl restart redis >> $installLog 2>&1
+}
+
+install_ejabberd {
   # Install ejabberd
   echo 40 | dialog --title "Installing OSP" --gauge "Installing eJabberd" 10 70 0
   sudo wget -O "/tmp/ejabberd-20.04-linux-x64.run" "https://www.process-one.net/downloads/downloads-action.php?file=/20.04/ejabberd-20.04-linux-x64.run" >> $installLog 2>&1
@@ -253,6 +247,40 @@ install_osp() {
   sudo systemctl enable ejabberd >> $installLog 2>&1
   sudo systemctl start ejabberd >> $installLog 2>&1
   /usr/local/ejabberd/bin/ejabberdctl register admin localhost $ADMINPASS >> $installLog 2>&1
+}
+
+install_osp() {
+  cwd=$PWD
+  installLog=$cwd/install.log
+
+  echo "Starting OSP Install" > $installLog
+  echo 0 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
+
+  if  $arch
+  then
+          echo "Installing for Arch" >> $installLog
+          sudo pacman -S python-pip base-devel unzip wget git redis gunicorn uwsgi-plugin-python curl ffmpeg --needed --noconfirm >> $installLog 2>&1
+          echo 5 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
+          sudo pip3 install -r $cwd/setup/requirements.txt
+  else
+          echo "Installing for Debian - based" >> $installLog 2>&1
+
+          # Get Dependencies
+          sudo apt-get install build-essential libpcre3 libpcre3-dev libssl-dev unzip libpq-dev curl git -y >> $installLog 2>&1
+          echo 5 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
+          # Setup Python
+          sudo apt-get install python3 python3-pip uwsgi-plugin-python3 python3-dev python3-setuptools -y >> $installLog 2>&1
+          echo 7 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
+          sudo pip3 install wheel >> $installLog 2>&1
+          sudo pip3 install -r $cwd/setup/requirements.txt >> $installLog 2>&1
+
+  fi
+
+  # Setup OSP Directory
+  echo 20 | dialog --title "Installing OSP" --gauge "Setting up OSP Directory" 10 70 0
+  mkdir -p /opt/osp >> $installLog 2>&1
+  sudo cp -rf -R $cwd/* /opt/osp >> $installLog 2>&1
+  sudo cp -rf -R $cwd/.git /opt/osp >> $installLog 2>&1
 
   echo 50 | dialog --title "Installing OSP" --gauge "Setting up Gunicorn SystemD" 10 70 0
   if cd $cwd/setup/gunicorn
@@ -281,14 +309,7 @@ install_osp() {
   sudo chown -R "$http_user:$http_user" /opt/osp >> $installLog 2>&1
   sudo chown -R "$http_user:$http_user" /opt/osp/.git >> $installLog 2>&1
 
-  #Setup FFMPEG for recordings and Thumbnails
-  echo 80 | dialog --title "Installing OSP" --gauge "Installing FFMPEG" 10 70 0
-  if [ "$arch" = "false" ]
-  then
-          sudo add-apt-repository ppa:jonathonf/ffmpeg-4 -y >> $installLog 2>&1
-          sudo apt-get update >> $installLog 2>&1
-          sudo apt-get install ffmpeg -y >> $installLog 2>&1
-  fi
+  install_ffmpeg
 
   # Setup Logrotate
   echo 90 | dialog --title "Installing OSP" --gauge "Setting Up Log Rotation" 10 70 0
@@ -304,11 +325,9 @@ install_osp() {
           echo "Unable to setup logrotate" >> $installLog 2>&1
       fi
   fi
-  # Start Nginx
-  echo 100 | dialog --title "Installing OSP" --gauge "Starting Nginx" 10 70 0
-  sudo systemctl start nginx-osp.service >> $installLog 2>&1
-  sudo mv $installLog /opt/osp/logs >> /dev/null 2>&1
 }
+
+
 
 ##########################################################
 # Start Main Script Execution
