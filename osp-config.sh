@@ -62,8 +62,8 @@ reset_ejabberd() {
   sudo sed -i "s/CHANGE_EJABBERD_PASS/$ADMINPASS/" /opt/osp/conf/config.py >> $RESETLOG 2>&1
   echo 60 | dialog --title "Reset eJabberd Configuration" --gauge "Install eJabberd Configuration File" 10 70 0
   sudo mkdir /usr/local/ejabberd/conf >> $RESETLOG 2>&1
-  sudo cp /opt/osp/setup/ejabberd/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml >> $RESETLOG 2>&1
-  sudo cp /opt/osp/setup/ejabberd/inetrc /usr/local/ejabberd/conf/inetrc >> $RESETLOG  2>&1
+  sudo cp /opt/osp/install/ejabberd/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml >> $RESETLOG 2>&1
+  sudo cp /opt/osp/install/ejabberd/inetrc /usr/local/ejabberd/conf/inetrc >> $RESETLOG  2>&1
   sudo cp /usr/local/ejabberd/bin/ejabberd.service /etc/systemd/system/ejabberd.service >> $RESETLOG 2>&1
   user_input=$(\
   dialog --nocancel --title "Setting up eJabberd" \
@@ -127,6 +127,20 @@ upgrade_osp() {
    echo 100 | dialog --title "Upgrading OSP" --gauge "Complete" 10 70 0
 }
 
+install_prereq() {
+  if  $arch
+  then
+          # Get Arch Dependencies
+          sudo pacman -S python-pip base-devel unzip wget git redis gunicorn uwsgi-plugin-python curl ffmpeg --needed --noconfirm
+  else
+          # Get Deb Dependencies
+          sudo apt-get install build-essential libpcre3 libpcre3-dev libssl-dev unzip libpq-dev curl git -y
+          # Setup Python
+          sudo apt-get install python3 python3-pip uwsgi-plugin-python3 python3-dev python3-setuptools -y
+          sudo pip3 install wheel
+  fi
+}
+
 install_ffmpeg() {
   #Setup FFMPEG for recordings and Thumbnails
   echo 80 | dialog --title "Installing OSP" --gauge "Installing FFMPEG" 10 70 0
@@ -139,6 +153,7 @@ install_ffmpeg() {
 }
 
 install_nginx_core() {
+  install_prereq
   # Build Nginx with RTMP module
   echo 25 | dialog --title "Installing OSP" --gauge "Downloading Nginx Source" 10 70 0
   if cd /tmp
@@ -216,37 +231,45 @@ install_nginx_core() {
 
 }
 
+install_osp_rtmp() {
+  install_prereq
+  sudo pip3 install -r $cwd/installs/osp-rtmp/setup/requirements.txt
+  sudo cp $cwd/installs/osp-rtmp/setup/nginx/servers/*.conf /usr/local/nginx/conf/servers
+  sudo cp $cwd/installs/osp-rtmp/setup/nginx/services/*.conf /usr/local/nginx/conf/services
+  sudo mkdir /opt/osp-rtmp
+  sudo cp -R $cwd/installs/osp-rtmp/* /osp/osp-rtmp
+  sudo cp $cwd/installs/osp-rtmp/setup/gunicorn/osp-rtmp.service /etc/systemd/system/osp-rtmp.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable osp-rtmp.service
+}
+
 install_redis() {
   # Install Redis
-  sudo apt-get install redis -y >> $installLog 2>&1
-  echo 10 | dialog --title "Installing OSP" --gauge "Configuring Redis" 10 70 0
-  sudo sed -i 's/appendfsync everysec/appendfsync no/' /etc/redis/redis.conf >> $installLog 2>&1
-  sudo systemctl restart redis >> $installLog 2>&1
+  sudo apt-get install redis -y
+  sudo sed -i 's/appendfsync everysec/appendfsync no/' /etc/redis/redis.conf
 }
 
 install_ejabberd {
+
+  install_prereq
+
   # Install ejabberd
-  echo 40 | dialog --title "Installing OSP" --gauge "Installing eJabberd" 10 70 0
   sudo wget -O "/tmp/ejabberd-20.04-linux-x64.run" "https://www.process-one.net/downloads/downloads-action.php?file=/20.04/ejabberd-20.04-linux-x64.run" >> $installLog 2>&1
-  sudo chmod +x /tmp/ejabberd-20.04-linux-x64.run $installLog 2>&1
-  /tmp/ejabberd-20.04-linux-x64.run ----unattendedmodeui none --mode unattended --prefix /usr/local/ejabberd --cluster 0 >> $installLog 2>&1
-  echo 42 | dialog --title "Installing OSP" --gauge "Installing eJabberd" 10 70 0
-  ADMINPASS=$( cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 )
-  sed -i "s/CHANGE_EJABBERD_PASS/$ADMINPASS/" /opt/osp/conf/config.py.dist >> $installLog 2>&1
+  sudo chmod +x /tmp/ejabberd-20.04-linux-x64.run
+  /tmp/ejabberd-20.04-linux-x64.run ----unattendedmodeui none --mode unattended --prefix /usr/local/ejabberd --cluster 0
   mkdir /usr/local/ejabberd/conf >> $installLog 2>&1
-  sudo cp /opt/osp/setup/ejabberd/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml >> $installLog 2>&1
-  sudo cp /opt/osp/setup/ejabberd/inetrc /usr/local/ejabberd/conf/inetrc >> $installLog  2>&1
-  sudo cp /usr/local/ejabberd/bin/ejabberd.service /etc/systemd/system/ejabberd.service >> $installLog 2>&1
+  sudo cp $cwd/installs/ejabberd/setup/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml
+  sudo cp $cwd/installs/ejabbed/setup/inetrc /usr/local/ejabberd/conf/inetrc
+  sudo cp /usr/local/ejabberd/bin/ejabberd.service /etc/systemd/system/ejabberd.service
   user_input=$(\
   dialog --nocancel --title "Setting up eJabberd" \
          --inputbox "Enter your Site Address (Must match FQDN):" 8 80 \
   3>&1 1>&2 2>&3 3>&-)
-  sudo sed -i "s/CHANGEME/$user_input/g" /usr/local/ejabberd/conf/ejabberd.yml>> $installLog 2>&1
-  echo 45 | dialog --title "Installing OSP" --gauge "Installing eJabberd" 10 70 0
-  sudo systemctl daemon-reload >> $installLog 2>&1
-  sudo systemctl enable ejabberd >> $installLog 2>&1
-  sudo systemctl start ejabberd >> $installLog 2>&1
-  /usr/local/ejabberd/bin/ejabberdctl register admin localhost $ADMINPASS >> $installLog 2>&1
+  sudo sed -i "s/CHANGEME/$user_input/g" /usr/local/ejabberd/conf/ejabberd.yml
+  sudo systemctl daemon-reload
+  sudo systemctl enable ejabberd
+  sudo systemctl start ejabberd
+  sudo cp $cwd/installs/ejabberd/setup/nginx/locations/ejabberd.conf /usr/local/nginx/conf/locations/
 }
 
 install_osp() {
@@ -255,26 +278,8 @@ install_osp() {
 
   echo "Starting OSP Install" > $installLog
   echo 0 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
-
-  if  $arch
-  then
-          echo "Installing for Arch" >> $installLog
-          sudo pacman -S python-pip base-devel unzip wget git redis gunicorn uwsgi-plugin-python curl ffmpeg --needed --noconfirm >> $installLog 2>&1
-          echo 5 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
-          sudo pip3 install -r $cwd/setup/requirements.txt
-  else
-          echo "Installing for Debian - based" >> $installLog 2>&1
-
-          # Get Dependencies
-          sudo apt-get install build-essential libpcre3 libpcre3-dev libssl-dev unzip libpq-dev curl git -y >> $installLog 2>&1
-          echo 5 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
-          # Setup Python
-          sudo apt-get install python3 python3-pip uwsgi-plugin-python3 python3-dev python3-setuptools -y >> $installLog 2>&1
-          echo 7 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
-          sudo pip3 install wheel >> $installLog 2>&1
-          sudo pip3 install -r $cwd/setup/requirements.txt >> $installLog 2>&1
-
-  fi
+  install_prereq
+  sudo pip3 install -r $cwd/setup/requirements.txt >> $installLog 2>&1
 
   # Setup OSP Directory
   echo 20 | dialog --title "Installing OSP" --gauge "Setting up OSP Directory" 10 70 0
@@ -327,8 +332,6 @@ install_osp() {
   fi
 }
 
-
-
 ##########################################################
 # Start Main Script Execution
 ##########################################################
@@ -343,11 +346,11 @@ if [ $# -eq 0 ]
         --clear \
         --cancel-label "Exit" \
         --menu "Please select:" $HEIGHT $WIDTH 7 \
-        "1" "Install/Reinstall OSP" \
-        "2" "Restart Nginx" \
-        "3" "Restart OSP" \
-        "4" "Upgrade to Latest Build" \
-        "5" "Upgrade DB Only" \
+        "1" "Install OSP - Single Server" \
+        "2" "Install OSP-Core" \
+        "3" "Install OSP-RTMP" \
+        "4" "Install OSP-Edge" \
+        "5" "Install eJabberd" \
         "6" "Reset Nginx Configuration" \
         "7" "Reset EJabberD Configuration" \
         2>&1 1>&3)
