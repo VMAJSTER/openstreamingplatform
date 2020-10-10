@@ -43,41 +43,41 @@ display_result() {
 reset_ejabberd() {
   RESETLOG="/opt/osp/logs/reset.log"
   echo 5 | dialog --title "Reset eJabberd Configuration" --gauge "Stopping eJabberd" 10 70 0
-  sudo systemctl stop ejabberd > $RESETLOG 2>&1
+  sudo systemctl stop ejabberd
   echo 10 | dialog --title "Reset eJabberd Configuration" --gauge "Removing eJabberd" 10 70 0
-  sudo rm -rf /usr/local/ejabberd >> $RESETLOG 2>&1
+  sudo rm -rf /usr/local/ejabberd 
   echo 20 | dialog --title "Reset eJabberd Configuration" --gauge "Downloading eJabberd" 10 70 0
-  sudo wget -O "/tmp/ejabberd-20.04-linux-x64.run" "https://www.process-one.net/downloads/downloads-action.php?file=/20.04/ejabberd-20.04-linux-x64.run" >> $RESETLOG 2>&1
-  sudo chmod +x /tmp/ejabberd-20.04-linux-x64.run >> $RESETLOG 2>&1
+  sudo wget -O "/tmp/ejabberd-20.04-linux-x64.run" "https://www.process-one.net/downloads/downloads-action.php?file=/20.04/ejabberd-20.04-linux-x64.run" 
+  sudo chmod +x /tmp/ejabberd-20.04-linux-x64.run 
   echo 30 | dialog --title "Reset eJabberd Configuration" --gauge "Reinstalling eJabberd" 10 70 0
-  sudo /tmp/ejabberd-20.04-linux-x64.run ----unattendedmodeui none --mode unattended --prefix /usr/local/ejabberd --cluster 0 >> $RESETLOG 2>&1
+  sudo /tmp/ejabberd-20.04-linux-x64.run ----unattendedmodeui none --mode unattended --prefix /usr/local/ejabberd --cluster 0 
   echo 50 | dialog --title "Reset eJabberd Configuration" --gauge "Replacing Admin Creds in Config.py" 10 70 0
   ADMINPASS=$( cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 )
-  sudo sed -i '/^ejabberdPass/d' /opt/osp/conf/config.py $RESETLOG 2>&1
-  sudo sed -i '/^ejabberdHost/d' /opt/osp/conf/config.py $RESETLOG 2>&1
-  sudo sed -i '/^ejabberdAdmin/d' /opt/osp/conf/config.py $RESETLOG 2>&1
+  sudo sed -i '/^ejabberdPass/d' /opt/osp/conf/config.py
+  sudo sed -i '/^ejabberdHost/d' /opt/osp/conf/config.py
+  sudo sed -i '/^ejabberdAdmin/d' /opt/osp/conf/config.py
   sudo echo 'ejabberdAdmin = "admin"' >> /opt/osp/conf/config.py
   sudo echo 'ejabberdHost = "localhost"' >> /opt/osp/conf/config.py
   sudo echo 'ejabberdPass = "CHANGE_EJABBERD_PASS"' >> /opt/osp/conf/config.py
-  sudo sed -i "s/CHANGE_EJABBERD_PASS/$ADMINPASS/" /opt/osp/conf/config.py >> $RESETLOG 2>&1
+  sudo sed -i "s/CHANGE_EJABBERD_PASS/$ADMINPASS/" /opt/osp/conf/config.py 
   echo 60 | dialog --title "Reset eJabberd Configuration" --gauge "Install eJabberd Configuration File" 10 70 0
-  sudo mkdir /usr/local/ejabberd/conf >> $RESETLOG 2>&1
-  sudo cp /opt/osp/install/ejabberd/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml >> $RESETLOG 2>&1
-  sudo cp /opt/osp/install/ejabberd/inetrc /usr/local/ejabberd/conf/inetrc >> $RESETLOG  2>&1
-  sudo cp /usr/local/ejabberd/bin/ejabberd.service /etc/systemd/system/ejabberd.service >> $RESETLOG 2>&1
+  sudo mkdir /usr/local/ejabberd/conf 
+  sudo cp /opt/osp/install/ejabberd/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml 
+  sudo cp /opt/osp/install/ejabberd/inetrc /usr/local/ejabberd/conf/inetrc 
+  sudo cp /usr/local/ejabberd/bin/ejabberd.service /etc/systemd/system/ejabberd.service 
   user_input=$(\
   dialog --nocancel --title "Setting up eJabberd" \
          --inputbox "Enter your Site Address (Must match FQDN):" 8 80 \
   3>&1 1>&2 2>&3 3>&-)
   echo 80 | dialog --title "Reset eJabberd Configuration" --gauge "Updating eJabberd Config File" 10 70 0
-  sudo sed -i "s/CHANGEME/$user_input/g" /usr/local/ejabberd/conf/ejabberd.yml>> $RESETLOG 2>&1
+  sudo sed -i "s/CHANGEME/$user_input/g" /usr/local/ejabberd/conf/ejabberd.yml
   echo 85 | dialog --title "Reset eJabberd Configuration" --gauge "Restarting eJabberd" 10 70 0
-  sudo systemctl daemon-reload >> $RESETLOG 2>&1
-  sudo systemctl enable ejabberd >> $RESETLOG 2>&1
-  sudo systemctl start ejabberd >> $RESETLOG 2>&1
+  sudo systemctl daemon-reload 
+  sudo systemctl enable ejabberd 
+  sudo systemctl start ejabberd 
   echo 90 | dialog --title "Reset eJabberd Configuration" --gauge "Setting eJabberd Local Admin" 10 70 0
-  sudo /usr/local/ejabberd/bin/ejabberdctl register admin localhost $ADMINPASS >> $RESETLOG 2>&1
-  sudo /usr/local/ejabberd/bin/ejabberdctl change_password admin localhost $ADMINPASS >> $RESETLOG 2>&1
+  sudo /usr/local/ejabberd/bin/ejabberdctl register admin localhost $ADMINPASS 
+  sudo /usr/local/ejabberd/bin/ejabberdctl change_password admin localhost $ADMINPASS 
   echo 95 | dialog --title "Reset eJabberd Configuration" --gauge "Restarting OSP" 10 70 0
   sudo systemctl restart osp.target
 }
@@ -85,45 +85,45 @@ reset_ejabberd() {
 upgrade_db() {
   UPGRADELOG="/opt/osp/logs/upgrade.log"
   echo 0 | dialog --title "Upgrading Database" --gauge "Stopping OSP" 10 70 0
-  sudo systemctl stop osp.target >> $UPGRADELOG 2>&1
+  sudo systemctl stop osp.target
   echo 15 | dialog --title "Upgrading Database" --gauge "Upgrading Database" 10 70 0
-  python3 manage.py db init >> $UPGRADELOG 2>&1
+  python3 manage.py db init
   echo 25 | dialog --title "Upgrading Database" --gauge "Upgrading Database" 10 70 0
-  python3 manage.py db migrate >> $UPGRADELOG 2>&1
+  python3 manage.py db migrate
   echo 50 | dialog --title "Upgrading Database" --gauge "Upgrading Database" 10 70 0
-  python3 manage.py db upgrade >> $UPGRADELOG 2>&1
+  python3 manage.py db upgrade
   echo 75 | dialog --title "Upgrading Database" --gauge "Starting OSP" 10 70 0
-  sudo systemctl start osp.target >> $UPGRADELOG 2>&1
+  sudo systemctl start osp.target
   echo 100 | dialog --title "Upgrading Database" --gauge "Complete" 10 70 0
 }
 
 upgrade_osp() {
    UPGRADELOG="/opt/osp/logs/upgrade.log"
    echo 0 | dialog --title "Upgrading OSP" --gauge "Pulling Git Repo" 10 70 0
-   sudo git stash > $UPGRADELOG 2>&1
-   sudo git pull >> $UPGRADELOG 2>&1
+   sudo git stash
+   sudo git pull
    echo 15 | dialog --title "Upgrading OSP" --gauge "Setting /opt/osp Ownership" 10 70 0
-   sudo chown -R $http_user:$http_user /opt/osp >> $UPGRADELOG 2>&1
+   sudo chown -R $http_user:$http_user /opt/osp
    echo 25 | dialog --title "Upgrading OSP" --gauge "Stopping OSP" 10 70 0
-   systemctl stop osp.target >> $UPGRADELOG 2>&1
+   systemctl stop osp.target
    echo 30 | dialog --title "Upgrading OSP" --gauge "Stopping Nginx" 10 70 0
-   systemctl stop nginx-osp >> $UPGRADELOG 2>&1
+   systemctl stop nginx-osp
    echo 35 | dialog --title "Upgrading OSP" --gauge "Installing Python Dependencies" 10 70 0
-   sudo pip3 install -r /opt/osp/setup/requirements.txt >> $UPGRADELOG 2>&1
+   sudo pip3 install -r /opt/osp/setup/requirements.txt
    echo 45 | dialog --title "Upgrading OSP" --gauge "Upgrading Nginx-RTMP Configurations" 10 70 0
-   sudo cp /opt/osp/setup/nginx/osp-rtmp.conf /usr/local/nginx/conf $UPGRADELOG 2>&1
-   sudo cp /opt/osp/setup/nginx/osp-redirects.conf /usr/local/nginx/conf $UPGRADELOG 2>&1
-   sudo cp /opt/osp/setup/nginx/osp-socketio.conf /usr/local/nginx/conf $UPGRADELOG 2>&1
+   sudo cp /opt/osp/setup/nginx/osp-rtmp.conf /usr/local/nginx/conf 
+   sudo cp /opt/osp/setup/nginx/osp-redirects.conf /usr/local/nginx/conf 
+   sudo cp /opt/osp/setup/nginx/osp-socketio.conf /usr/local/nginx/conf 
    echo 50 | dialog --title "Upgrading OSP" --gauge "Upgrading Database" 10 70 0
-   python3 manage.py db init >> $UPGRADELOG 2>&1
+   python3 manage.py db init
    echo 55 | dialog --title "Upgrading OSP" --gauge "Upgrading Database" 10 70 0
-   python3 manage.py db migrate >> $UPGRADELOG 2>&1
+   python3 manage.py db migrate
    echo 65 | dialog --title "Upgrading OSP" --gauge "Upgrading Database" 10 70 0
-   python3 manage.py db upgrade >> $UPGRADELOG 2>&1
+   python3 manage.py db upgrade
    echo 75 | dialog --title "Upgrading OSP" --gauge "Starting OSP" 10 70 0
-   sudo systemctl start osp.target >> $UPGRADELOG 2>&1
+   sudo systemctl start osp.target
    echo 90 | dialog --title "Upgrading OSP" --gauge "Starting Nginx" 10 70 0
-   sudo systemctl start nginx-osp >> $UPGRADELOG 2>&1
+   sudo systemctl start nginx-osp
    echo 100 | dialog --title "Upgrading OSP" --gauge "Complete" 10 70 0
 }
 
@@ -146,9 +146,9 @@ install_ffmpeg() {
   echo 80 | dialog --title "Installing OSP" --gauge "Installing FFMPEG" 10 70 0
   if [ "$arch" = "false" ]
   then
-          sudo add-apt-repository ppa:jonathonf/ffmpeg-4 -y >> $installLog 2>&1
-          sudo apt-get update >> $installLog 2>&1
-          sudo apt-get install ffmpeg -y >> $installLog 2>&1
+          sudo add-apt-repository ppa:jonathonf/ffmpeg-4 -y
+          sudo apt-get update
+          sudo apt-get install ffmpeg -y
   fi
 }
 
@@ -167,7 +167,7 @@ install_nginx_core() {
           sudo wget -q "https://bitbucket.org/nginx-goodies/nginx-sticky-module-ng/get/master.tar.gz"
           echo 29 | dialog --title "Installing OSP" --gauge "Decompressing Nginx Source and Modules" 10 70 0
           sudo tar xfz nginx-1.17.3.tar.gz
-          sudo unzip -qq -o v1.2.1.zip >> $installLog 2>&1
+          sudo unzip -qq -o v1.2.1.zip
           sudo tar xfz zlib-1.2.11.tar.gz
           sudo tar xfz master.tar.gz
           echo 30 | dialog --title "Installing OSP" --gauge "Building Nginx from Source" 10 70 0
@@ -175,13 +175,13 @@ install_nginx_core() {
           then
                   ./configure --with-http_ssl_module --with-http_v2_module --with-http_auth_request_module --add-module=../nginx-rtmp-module-1.2.1 --add-module=../nginx-goodies-nginx-sticky-module-ng-08a395c66e42 --with-zlib=../zlib-1.2.11 --with-cc-opt="-Wimplicit-fallthrough=0" >> $installLog 2>&1
                   echo 35 | dialog --title "Installing OSP" --gauge "Installing Nginx" 10 70 0
-                  sudo make install >> $installLog 2>&1
+                  sudo make install
           else
-                  echo "Unable to Build Nginx! Aborting." >> $installLog 2>&1
+                  echo "Unable to Build Nginx! Aborting."
                   exit 1
           fi
   else
-          echo "Unable to Download Nginx due to missing /tmp! Aborting." >> $installLog 2>&1
+          echo "Unable to Download Nginx due to missing /tmp! Aborting."
           exit 1
   fi
 
@@ -189,25 +189,25 @@ install_nginx_core() {
   echo 37 | dialog --title "Installing OSP" --gauge "Copying Nginx Config Files" 10 70 0
   if cd $cwd/nginx-core/nginx
   then
-          sudo cp $cwd/nginx-core/nginx.conf /usr/local/nginx/conf/ >> $installLog 2>&1
-          sudo cp $cwd/nginx-core/mime.types /usr/local/nginx/conf/ >> $installLog 2>&1
+          sudo cp $cwd/nginx-core/nginx.conf /usr/local/nginx/conf/
+          sudo cp $cwd/nginx-core/mime.types /usr/local/nginx/conf/
           sudo mkdir /usr/local/nginx/conf/locations
           sudo mkdir /usr/local/nginx/conf/upstream
           sudo mkdir /usr/local/nginx/conf/servers
           sudo mkdir /usr/local/nginx/conf/services
   else
-          echo "Unable to find downloaded Nginx config directory.  Aborting." >> $installLog 2>&1
+          echo "Unable to find downloaded Nginx config directory.  Aborting."
           exit 1
   fi
   # Enable SystemD
   echo 38 | dialog --title "Installing OSP" --gauge "Setting up Nginx SystemD" 10 70 0
   if cd $cwd/setup/nginx
   then
-          sudo cp $cwd/nginx-core/nginx-osp.service /etc/systemd/system/nginx-osp.service >> $installLog 2>&1
-          sudo systemctl daemon-reload >> $installLog 2>&1
-          sudo systemctl enable nginx-osp.service >> $installLog 2>&1
+          sudo cp $cwd/nginx-core/nginx-osp.service /etc/systemd/system/nginx-osp.service
+          sudo systemctl daemon-reload
+          sudo systemctl enable nginx-osp.service
   else
-          echo "Unable to find downloaded Nginx config directory. Aborting." >> $installLog 2>&1
+          echo "Unable to find downloaded Nginx config directory. Aborting."
           exit 1
   fi
 
@@ -215,19 +215,18 @@ install_nginx_core() {
 
   # Create HLS directory
   echo 60 | dialog --title "Installing OSP" --gauge "Creating OSP Video Directories" 10 70 0
-  sudo mkdir -p "$web_root" >> $installLog 2>&1
-  sudo mkdir -p "$web_root/live" >> $installLog 2>&1
-  sudo mkdir -p "$web_root/videos" >> $installLog 2>&1
-  sudo mkdir -p "$web_root/live-adapt" >> $installLog 2>&1
-  sudo mkdir -p "$web_root/stream-thumb" >> $installLog 2>&1
+  sudo mkdir -p "$web_root"
+  sudo mkdir -p "$web_root/live"
+  sudo mkdir -p "$web_root/videos"
+  sudo mkdir -p "$web_root/live-adapt"
+  sudo mkdir -p "$web_root/stream-thumb"
 
   echo 70 | dialog --title "Installing OSP" --gauge "Setting Ownership of OSP Video Directories" 10 70 0
-  sudo chown -R "$http_user:$http_user" "$web_root" >> $installLog 2>&1
+  sudo chown -R "$http_user:$http_user" "$web_root"
 
   # Start Nginx
   echo 100 | dialog --title "Installing OSP" --gauge "Starting Nginx" 10 70 0
-  sudo systemctl start nginx-osp.service >> $installLog 2>&1
-  sudo mv $installLog /opt/osp/logs >> /dev/null 2>&1
+  sudo systemctl start nginx-osp.service 
 
 }
 
@@ -249,16 +248,16 @@ install_redis() {
   sudo sed -i 's/appendfsync everysec/appendfsync no/' /etc/redis/redis.conf
 }
 
-install_ejabberd {
+install_ejabberd() {
 
   install_prereq
   sudo pip3 install requests
 
   # Install ejabberd
-  sudo wget -O "/tmp/ejabberd-20.04-linux-x64.run" "https://www.process-one.net/downloads/downloads-action.php?file=/20.04/ejabberd-20.04-linux-x64.run" >> $installLog 2>&1
+  sudo wget -O "/tmp/ejabberd-20.04-linux-x64.run" "https://www.process-one.net/downloads/downloads-action.php?file=/20.04/ejabberd-20.04-linux-x64.run"
   sudo chmod +x /tmp/ejabberd-20.04-linux-x64.run
   /tmp/ejabberd-20.04-linux-x64.run ----unattendedmodeui none --mode unattended --prefix /usr/local/ejabberd --cluster 0
-  mkdir /usr/local/ejabberd/conf >> $installLog 2>&1
+  mkdir /usr/local/ejabberd/conf 
   sudo cp $cwd/installs/ejabberd/setup/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml
   sudo cp $cwd/installs/ejabbed/setup/inetrc /usr/local/ejabberd/conf/inetrc
   sudo cp /usr/local/ejabberd/bin/ejabberd.service /etc/systemd/system/ejabberd.service
@@ -271,6 +270,14 @@ install_ejabberd {
   sudo systemctl enable ejabberd
   sudo systemctl start ejabberd
   sudo cp $cwd/installs/ejabberd/setup/nginx/locations/ejabberd.conf /usr/local/nginx/conf/locations/
+}
+
+generate_ejabberd_admin() {
+  ADMINPASS=$( cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 )
+  sed -i "s/CHANGE_EJABBERD_PASS/$ADMINPASS/" /opt/osp/conf/config.py.dist
+  sudo sed -i "s/CHANGEME/$user_input/g" /usr/local/ejabberd/conf/ejabberd.yml
+  /usr/local/ejabberd/bin/ejabberdctl register admin localhost $ADMINPASS
+  sudo /usr/local/ejabberd/bin/ejabberdctl change_password admin localhost $ADMINPASS
 }
 
 install_osp() {
@@ -381,6 +388,7 @@ if [ $# -eq 0 ]
           install_ejabberd
           install_osp_rtmp
           install_osp
+          generate_ejabberd_admin
           result=$(echo "OSP Install Completed! \n\nPlease copy /opt/osp/conf/config.py.dist to /opt/osp/conf/config.py, review the settings, and start the osp service by running typing sudo systemctl start osp.target\n\nAlso, Edit the /usr/local/ejabberd/conf/ejabberd.yml file per Install Instructions\n\nInstall Log can be found at /opt/osp/logs/install.log")
           display_result "Install OSP"
           ;;
