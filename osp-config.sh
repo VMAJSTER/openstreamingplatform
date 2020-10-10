@@ -252,6 +252,7 @@ install_redis() {
 install_ejabberd {
 
   install_prereq
+  sudo pip3 install requests
 
   # Install ejabberd
   sudo wget -O "/tmp/ejabberd-20.04-linux-x64.run" "https://www.process-one.net/downloads/downloads-action.php?file=/20.04/ejabberd-20.04-linux-x64.run" >> $installLog 2>&1
@@ -278,6 +279,7 @@ install_osp() {
 
   echo "Starting OSP Install" > $installLog
   echo 0 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
+
   install_prereq
   sudo pip3 install -r $cwd/setup/requirements.txt >> $installLog 2>&1
 
@@ -374,75 +376,28 @@ if [ $# -eq 0 ]
           echo "Program terminated."
           ;;
         1 )
+          install_nginx_core
+          install_redis
+          install_ejabberd
+          install_osp_rtmp
           install_osp
           result=$(echo "OSP Install Completed! \n\nPlease copy /opt/osp/conf/config.py.dist to /opt/osp/conf/config.py, review the settings, and start the osp service by running typing sudo systemctl start osp.target\n\nAlso, Edit the /usr/local/ejabberd/conf/ejabberd.yml file per Install Instructions\n\nInstall Log can be found at /opt/osp/logs/install.log")
           display_result "Install OSP"
           ;;
         2 )
-          systemctl restart nginx-osp > /dev/null 2>&1
-          restartStatus=$(systemctl is-active nginx-osp) > /dev/null 2>&1
-          if [[ $restartStatus -eq Active ]]; then
-            result=$(echo Nginx Restarted Successfully!)
-          else
-            result=$(echo Nginx Failed to Restart!)
-          fi
-          display_result "Restart Nginx"
+          install_nginx_core
+          install_osp
           ;;
         3 )
-          systemctl restart osp.target > /dev/null 2>&1
-          worker5000=$(systemctl is-active osp-worker@5000) > /dev/null 2>&1
-          worker5001=$(systemctl is-active osp-worker@5001) > /dev/null 2>&1
-          worker5002=$(systemctl is-active osp-worker@5002) > /dev/null 2>&1
-          worker5003=$(systemctl is-active osp-worker@5003) > /dev/null 2>&1
-          worker5004=$(systemctl is-active osp-worker@5004) > /dev/null 2>&1
-          worker5005=$(systemctl is-active osp-worker@5005) > /dev/null 2>&1
-          worker5006=$(systemctl is-active osp-worker@5006) > /dev/null 2>&1
-          worker5007=$(systemctl is-active osp-worker@5007) > /dev/null 2>&1
-          worker5008=$(systemctl is-active osp-worker@5008) > /dev/null 2>&1
-          worker5009=$(systemctl is-active osp-worker@5009) > /dev/null 2>&1
-          worker5010=$(systemctl is-active osp-worker@5010) > /dev/null 2>&1
-          result=$(echo "Worker 5000: $worker5000\nWorker 5001: $worker5001\nWorker 5002: $worker5002\nWorker 5003: $worker5003\nWorker 5004: $worker5004\nWorker 5005: $worker5005\nWorker 5006: $worker5006 \nWorker 5007: $worker5007 \nWorker 5008: $worker5008 \nWorker 5009: $worker5009\nWorker 5010: $worker5010")
-          display_result "OSP Worker Status after Restart"
+          install_nginx_core
+          install_osp_rtmp
           ;;
         4 )
-          cd /opt/osp > /dev/null 2>&1
-          gitStatus=$(git branch)
-          if [[ ! -d .git ]]; then
-            result=$(echo "OSP not setup with Git.\n\n Please clone OSP Repo and try again")
-          else
-            git fetch > /dev/null 2>&1
-            BRANCH=$(git rev-parse --abbrev-ref HEAD) > /dev/null 2>&1
-            CURRENTCOMMIT=$(git rev-parse HEAD) > /dev/null 2>&1
-            REMOTECOMMIT=$(git rev-parse origin/$BRANCH) > /dev/null 2>&1
-            NEWVERSION=$(curl -s https://gitlab.com/Deamos/flask-nginx-rtmp-manager/-/raw/$BRANCH/version) > /dev/null 2>&1
-            if [[ $CURRENTCOMMIT == $REMOTECOMMIT ]]; then
-              result=$(echo "OSP is up-to-date on Branch $BRANCH")
-            else
-              dialog --title "Upgrade to Latest Build" \
-                     --yesno "Would you like to update your current install to the new commit?\n\nCurrent:$BRANCH/$VERSION$CURRENTCOMMIT\nRepository:$BRANCH/$NEWVERSION$REMOTECOMMIT" 20 80
-              response=$?
-              case $response in
-                 0 )
-                   upgrade_osp
-                   UPGRADECHECKVERSION="/opt/osp/setup/upgrade/${NEWVERSION::-1}.sh"
-                   if [[ -f $UPGRADECHECKVERSION ]]; then
-                      sudo bash $UPGRADECHECKVERSION >> /opt/osp/logs/${NEWVERSION::-1}.log 2>&1
-                   fi
-                   version=$NEWVERSION
-                   result=$(echo "OSP $BRANCH/$VERSION$CURRENTCOMMIT has been updated to $BRANCH/$NEWVERSION$REMOTECOMMIT\n\nUpgrade logs can be found at /opt/osp/logs/upgrade.log")
-                   ;;
-                 1 )
-                   result=$(echo "Canceled Update to $BRANCH/$NEWVERSION$REMOTECOMMIT")
-                   ;;
-              esac
-            fi
-          fi
-          display_result "Upgrade Results"
+
           ;;
         5 )
-          upgrade_db
-          result=$(echo "Database Upgrade Complete!")
-          display_result "Upgrade Results"
+          install_nginx_core
+          install_ejabberd
           ;;
         6 )
           reset_nginx
