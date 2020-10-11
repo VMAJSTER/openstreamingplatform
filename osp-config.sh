@@ -404,8 +404,8 @@ if [ $# -eq 0 ]
           sudo cp /opt/osp/conf/config.py.dist /opt/osp/conf/config.py
           generate_ejabberd_admin
           install_mysql
-          sudo systemctl start osp-rtmp
           sudo systemctl start osp.target
+          sudo systemctl start osp-rtmp
           result=$(echo "OSP Install Completed! \n\nPlease copy /opt/osp/conf/config.py.dist to /opt/osp/conf/config.py, review the settings, and start the osp service by running typing sudo systemctl start osp.target\n\nAlso, Edit the /usr/local/ejabberd/conf/ejabberd.yml file per Install Instructions\n\nInstall Log can be found at /opt/osp/logs/install.log")
           display_result "Install OSP"
           ;;
