@@ -41,9 +41,9 @@ sed -i "s/CHANGEME/$ipaddress/g" /usr/local/nginx/conf/nginx.conf
 
 # Enable SystemD
 
-sudo cp nginx-osp.service /etc/systemd/system/nginx-osp.service
+sudo cp nginx-osp.service /etc/systemd/system/osp-edge.service
 sudo systemctl daemon-reload
-sudo systemctl enable nginx-osp.service
+sudo systemctl enable osp-edge.service
 
 # Create HLS directory
 sudo mkdir -p /var/www
@@ -58,4 +58,4 @@ sudo apt-get update
 sudo apt-get install ffmpeg -y
 
 # Start Nginx
-sudo systemctl start nginx-osp.service
+sudo systemctl start osp-edge.service
