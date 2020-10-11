@@ -168,7 +168,5 @@ def shutdown_session(exception=None):
 #----------------------------------------------------------------------------#
 # Finalize App Init
 #----------------------------------------------------------------------------#
-system.newLog("0", "OSP-RTMP Module Started Up Successfully - version: " + str(globalvars.version))
-
 if __name__ == '__main__':
     app.run(Debug=config.debugMode)
