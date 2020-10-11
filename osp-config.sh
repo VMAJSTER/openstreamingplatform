@@ -302,6 +302,9 @@ install_osp() {
           exit 1
   fi
 
+  sudo cp $DIR/setup/nginx/locations/* /usr/local/nginx/conf/locations
+  sudo cp $DIR/setup/nginx/upstream/* /usr/local/nginx/conf/upstream
+
   # Create HLS directory
   echo 60 | dialog --title "Installing OSP" --gauge "Creating OSP Video Directories" 10 70 0
   sudo mkdir -p "$web_root" >> $installLog 2>&1
