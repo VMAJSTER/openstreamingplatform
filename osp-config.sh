@@ -187,10 +187,10 @@ install_nginx_core() {
 
   # Grab Configuration
   echo 37 | dialog --title "Installing OSP" --gauge "Copying Nginx Config Files" 10 70 0
-  if cd $cwd/nginx-core/nginx
+  if cd $cwd/installs/nginx-core/nginx
   then
-          sudo cp $cwd/nginx-core/nginx.conf /usr/local/nginx/conf/
-          sudo cp $cwd/nginx-core/mime.types /usr/local/nginx/conf/
+          sudo cp $cwd/installs/nginx-core/nginx.conf /usr/local/nginx/conf/
+          sudo cp $cwd/installs/nginx-core/mime.types /usr/local/nginx/conf/
           sudo mkdir /usr/local/nginx/conf/locations
           sudo mkdir /usr/local/nginx/conf/upstream
           sudo mkdir /usr/local/nginx/conf/servers
@@ -201,9 +201,9 @@ install_nginx_core() {
   fi
   # Enable SystemD
   echo 38 | dialog --title "Installing OSP" --gauge "Setting up Nginx SystemD" 10 70 0
-  if cd $cwd/setup/nginx
+  if cd $cwd/installs/nginx-core
   then
-          sudo cp $cwd/nginx-core/nginx-osp.service /etc/systemd/system/nginx-osp.service
+          sudo cp $cwd/installs/nginx-core/nginx-osp.service /etc/systemd/system/nginx-osp.service
           sudo systemctl daemon-reload
           sudo systemctl enable nginx-osp.service
   else
