@@ -154,6 +154,16 @@ install_ffmpeg() {
   fi
 }
 
+install_mysql(){
+  SQLPASS=$( cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 )
+  sudo apt-get install mysql-server
+  sudo mysql -e "create database 'osp'"
+  sudo mysql -e "GRANT ALL PRIVILEGES ON osp.* TO osp@'localhost' IDENTIFIED BY '$SQLPASS'";
+  sudo mysql -e "flush privileges"
+  sudo sed -i "s/sqlpass/$SQLPASS/g" $DIR/installs/osp-rtmp/conf/config.py.dist
+  sudo sed -i "s/sqlpass/$SQLPASS/g" $DIR/conf/config.py.dist
+}
+
 install_nginx_core() {
   install_prereq
   # Build Nginx with RTMP module
@@ -269,6 +279,7 @@ install_ejabberd() {
 generate_ejabberd_admin() {
   ADMINPASS=$( cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 )
   sed -i "s/CHANGE_EJABBERD_PASS/$ADMINPASS/" /opt/osp/conf/config.py.dist
+  sed -i "s/CHANGE_EJABBERD_PASS/$ADMINPASS/" /opt/osp-rtmp/conf/config.py.dist
   sudo sed -i "s/CHANGEME/$user_input/g" /usr/local/ejabberd/conf/ejabberd.yml
   /usr/local/ejabberd/bin/ejabberdctl register admin localhost $ADMINPASS
   sudo /usr/local/ejabberd/bin/ejabberdctl change_password admin localhost $ADMINPASS
@@ -386,6 +397,11 @@ if [ $# -eq 0 ]
           install_osp_rtmp
           install_osp
           generate_ejabberd_admin
+          install_mysql
+          sudo cp /opt/osp-rtmp/conf/config.py.dist /opt/osp-rtmp/conf/config.py
+          sudo cp /opt/osp/conf/config.py.dist /opt/osp/conf/config.py
+          sudo systemctl start osp-rtmp
+          sudo systemctl start osp.target
           result=$(echo "OSP Install Completed! \n\nPlease copy /opt/osp/conf/config.py.dist to /opt/osp/conf/config.py, review the settings, and start the osp service by running typing sudo systemctl start osp.target\n\nAlso, Edit the /usr/local/ejabberd/conf/ejabberd.yml file per Install Instructions\n\nInstall Log can be found at /opt/osp/logs/install.log")
           display_result "Install OSP"
           ;;
