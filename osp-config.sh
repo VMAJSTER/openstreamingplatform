@@ -266,6 +266,7 @@ install_ejabberd() {
   /tmp/ejabberd-20.04-linux-x64.run ----unattendedmodeui none --mode unattended --prefix /usr/local/ejabberd --cluster 0
   mkdir /usr/local/ejabberd/conf 
   sudo cp $DIR/installs/ejabberd/setup/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml
+  sudo cp $DIR/installs/ejabberd/setup/auth_osp.py /usr/local/ejabberd/conf/auth_osp.py
   sudo cp $DIR/installs/ejabberd/setup/inetrc /usr/local/ejabberd/conf/inetrc
   sudo cp /usr/local/ejabberd/bin/ejabberd.service /etc/systemd/system/ejabberd.service
   user_input=$(\
