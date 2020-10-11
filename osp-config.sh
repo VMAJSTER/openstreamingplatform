@@ -187,7 +187,7 @@ install_nginx_core() {
 
   # Grab Configuration
   echo 37 | dialog --title "Installing OSP" --gauge "Copying Nginx Config Files" 10 70 0
-  if cd $cwd/installs/nginx-core/nginx
+  if cd $cwd/installs/nginx-core
   then
           sudo cp $cwd/installs/nginx-core/nginx.conf /usr/local/nginx/conf/
           sudo cp $cwd/installs/nginx-core/mime.types /usr/local/nginx/conf/
