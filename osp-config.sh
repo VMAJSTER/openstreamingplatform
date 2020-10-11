@@ -1,5 +1,7 @@
 #!/bin/bash
 # OSP Control Script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 
 VERSION=$(<version)
 
@@ -188,8 +190,8 @@ install_nginx_core() {
   # Grab Configuration
   echo 37 | dialog --title "Installing OSP" --gauge "Copying Nginx Config Files" 10 70 0
 
-  sudo cp $cwd/installs/nginx-core/nginx.conf /usr/local/nginx/conf/
-  sudo cp $cwd/installs/nginx-core/mime.types /usr/local/nginx/conf/
+  sudo cp $DIR/installs/nginx-core/nginx.conf /usr/local/nginx/conf/
+  sudo cp $DIR/installs/nginx-core/mime.types /usr/local/nginx/conf/
   sudo mkdir /usr/local/nginx/conf/locations
   sudo mkdir /usr/local/nginx/conf/upstream
   sudo mkdir /usr/local/nginx/conf/servers
@@ -198,7 +200,7 @@ install_nginx_core() {
   # Enable SystemD
   echo 38 | dialog --title "Installing OSP" --gauge "Setting up Nginx SystemD" 10 70 0
 
-  sudo cp $cwd/installs/nginx-core/nginx-osp.service /etc/systemd/system/nginx-osp.service
+  sudo cp $DIR/installs/nginx-core/nginx-osp.service /etc/systemd/system/nginx-osp.service
   sudo systemctl daemon-reload
   sudo systemctl enable nginx-osp.service
 
@@ -224,12 +226,12 @@ install_nginx_core() {
 
 install_osp_rtmp() {
   install_prereq
-  sudo pip3 install -r $cwd/installs/osp-rtmp/setup/requirements.txt
-  sudo cp $cwd/installs/osp-rtmp/setup/nginx/servers/*.conf /usr/local/nginx/conf/servers
-  sudo cp $cwd/installs/osp-rtmp/setup/nginx/services/*.conf /usr/local/nginx/conf/services
+  sudo pip3 install -r $DIR/installs/osp-rtmp/setup/requirements.txt
+  sudo cp $DIR/installs/osp-rtmp/setup/nginx/servers/*.conf /usr/local/nginx/conf/servers
+  sudo cp $DIR/installs/osp-rtmp/setup/nginx/services/*.conf /usr/local/nginx/conf/services
   sudo mkdir /opt/osp-rtmp
-  sudo cp -R $cwd/installs/osp-rtmp/* /osp/osp-rtmp
-  sudo cp $cwd/installs/osp-rtmp/setup/gunicorn/osp-rtmp.service /etc/systemd/system/osp-rtmp.service
+  sudo cp -R $DIR/installs/osp-rtmp/* /osp/osp-rtmp
+  sudo cp $DIR/installs/osp-rtmp/setup/gunicorn/osp-rtmp.service /etc/systemd/system/osp-rtmp.service
   sudo systemctl daemon-reload
   sudo systemctl enable osp-rtmp.service
 }
@@ -250,8 +252,8 @@ install_ejabberd() {
   sudo chmod +x /tmp/ejabberd-20.04-linux-x64.run
   /tmp/ejabberd-20.04-linux-x64.run ----unattendedmodeui none --mode unattended --prefix /usr/local/ejabberd --cluster 0
   mkdir /usr/local/ejabberd/conf 
-  sudo cp $cwd/installs/ejabberd/setup/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml
-  sudo cp $cwd/installs/ejabbed/setup/inetrc /usr/local/ejabberd/conf/inetrc
+  sudo cp $DIR/installs/ejabberd/setup/ejabberd.yml /usr/local/ejabberd/conf/ejabberd.yml
+  sudo cp $DIR/installs/ejabbed/setup/inetrc /usr/local/ejabberd/conf/inetrc
   sudo cp /usr/local/ejabberd/bin/ejabberd.service /etc/systemd/system/ejabberd.service
   user_input=$(\
   dialog --nocancel --title "Setting up eJabberd" \
@@ -261,7 +263,7 @@ install_ejabberd() {
   sudo systemctl daemon-reload
   sudo systemctl enable ejabberd
   sudo systemctl start ejabberd
-  sudo cp $cwd/installs/ejabberd/setup/nginx/locations/ejabberd.conf /usr/local/nginx/conf/locations/
+  sudo cp $DIR/installs/ejabberd/setup/nginx/locations/ejabberd.conf /usr/local/nginx/conf/locations/
 }
 
 generate_ejabberd_admin() {
@@ -274,25 +276,25 @@ generate_ejabberd_admin() {
 
 install_osp() {
   cwd=$PWD
-  installLog=$cwd/install.log
+  installLog=$DIR/install.log
 
   echo "Starting OSP Install" > $installLog
   echo 0 | dialog --title "Installing OSP" --gauge "Installing Linux Dependencies" 10 70 0
 
   install_prereq
-  sudo pip3 install -r $cwd/setup/requirements.txt >> $installLog 2>&1
+  sudo pip3 install -r $DIR/setup/requirements.txt >> $installLog 2>&1
 
   # Setup OSP Directory
   echo 20 | dialog --title "Installing OSP" --gauge "Setting up OSP Directory" 10 70 0
   mkdir -p /opt/osp >> $installLog 2>&1
-  sudo cp -rf -R $cwd/* /opt/osp >> $installLog 2>&1
-  sudo cp -rf -R $cwd/.git /opt/osp >> $installLog 2>&1
+  sudo cp -rf -R $DIR/* /opt/osp >> $installLog 2>&1
+  sudo cp -rf -R $DIR/.git /opt/osp >> $installLog 2>&1
 
   echo 50 | dialog --title "Installing OSP" --gauge "Setting up Gunicorn SystemD" 10 70 0
-  if cd $cwd/setup/gunicorn
+  if cd $DIR/setup/gunicorn
   then
-          sudo cp $cwd/setup/gunicorn/osp.target /etc/systemd/system/ >> $installLog 2>&1
-          sudo cp $cwd/setup/gunicorn/osp-worker@.service /etc/systemd/system/ >> $installLog 2>&1
+          sudo cp $DIR/setup/gunicorn/osp.target /etc/systemd/system/ >> $installLog 2>&1
+          sudo cp $DIR/setup/gunicorn/osp-worker@.service /etc/systemd/system/ >> $installLog 2>&1
           sudo systemctl daemon-reload >> $installLog 2>&1
           sudo systemctl enable osp.target >> $installLog 2>&1
   else
