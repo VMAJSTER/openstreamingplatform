@@ -157,6 +157,8 @@ install_ffmpeg() {
 install_mysql(){
   SQLPASS=$( cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 )
   sudo apt-get install mysql-server
+  sudo cp $DIR/setup/mysql/mysqld.cnf /etc/mysql/my.cnf
+  sudo systemctl restart mysql
   sudo mysql -e "create database 'osp'"
   sudo mysql -e "GRANT ALL PRIVILEGES ON osp.* TO osp@'localhost' IDENTIFIED BY '$SQLPASS'";
   sudo mysql -e "flush privileges"
