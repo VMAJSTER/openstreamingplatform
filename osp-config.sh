@@ -160,10 +160,11 @@ install_mysql(){
   sudo cp $DIR/setup/mysql/mysqld.cnf /etc/mysql/my.cnf
   sudo systemctl restart mysql
   sudo mysql -e "create database osp"
-  sudo mysql -e "GRANT ALL PRIVILEGES ON osp.* TO osp@localhost IDENTIFIED BY $SQLPASS";
+  sudo mysql -e "CREATE USER 'osp'@'localhost' IDENTIFIED BY '$SQLPASS'"
+  sudo mysql -e "GRANT ALL PRIVILEGES ON osp.* TO 'osp'@'localhost'"
   sudo mysql -e "flush privileges"
   sudo sed -i "s/sqlpass/$SQLPASS/g" /opt/osp-rtmp/conf/config.py
-  sudo sed -i "s/sqlpass/$SQLPASS/g" /opt/osp/config.py
+  sudo sed -i "s/sqlpass/$SQLPASS/g" /opt/osp/conf/config.py
 }
 
 install_nginx_core() {
