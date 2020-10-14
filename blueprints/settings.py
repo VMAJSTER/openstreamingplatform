@@ -382,9 +382,11 @@ def admin_page():
         for stream in streamList:
             currentViewers = currentViewers + stream.currentViewers
 
-        nginxStatDataRequest = requests.get('http://127.0.0.1:9000/stats')
-        nginxStatData = (json.loads(json.dumps(xmltodict.parse(nginxStatDataRequest.text))))
-
+        try:
+            nginxStatDataRequest = requests.get('http://127.0.0.1:9000/stats')
+            nginxStatData = (json.loads(json.dumps(xmltodict.parse(nginxStatDataRequest.text))))
+        except:
+            nginxStatData = None
         globalWebhookQuery = webhook.globalWebhook.query.all()
 
         themeList = []
