@@ -317,7 +317,7 @@ generate_ejabberd_admin() {
   sed -i "s/CHANGE_EJABBERD_PASS/$ADMINPASS/" /opt/osp/conf/config.py
   sed -i "s/CHANGE_EJABBERD_PASS/$ADMINPASS/" /opt/osp-rtmp/conf/config.py
   sudo sed -i "s/CHANGEME/$user_input/g" /usr/local/ejabberd/conf/ejabberd.yml
-  /usr/local/ejabberd/bin/ejabberdctl register admin localhost $ADMINPASS
+  sudo /usr/local/ejabberd/bin/ejabberdctl register admin localhost $ADMINPASS
   sudo /usr/local/ejabberd/bin/ejabberdctl change_password admin localhost $ADMINPASS
 }
 
@@ -445,18 +445,22 @@ if [ $# -eq 0 ]
         2 )
           install_nginx_core
           install_osp
+          sudo systemctl restart nginx-osp
           ;;
         3 )
           install_nginx_core
           install_osp_rtmp
+          sudo systemctl restart nginx-osp
           ;;
         4 )
           install_nginx_core
           install_osp_edge
+          sudo systemctl restart nginx-osp
           ;;
         5 )
           install_nginx_core
           install_ejabberd
+          sudo systemctl restart nginx-osp
           ;;
         6 )
           reset_nginx
