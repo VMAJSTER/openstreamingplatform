@@ -255,6 +255,38 @@ install_redis() {
   sudo sed -i 's/appendfsync everysec/appendfsync no/' /etc/redis/redis.conf
 }
 
+install_osp_edge () {
+
+  user_input=$(\
+  dialog --nocancel --title "Setting up OSP-Edge" \
+         --inputbox "Enter your OSP-RTMP IP Address:" 8 80 \
+  3>&1 1>&2 2>&3 3>&-)
+
+  # Grab Configuration
+  sudo cp $DIR/installs/osp-edge/setup/nginx/locations/osp-edge-redirects.conf /usr/local/nginx/conf/locations
+  sudo cp $DIR/installs/osp-edge/setup/nginx/servers/osp-edge-servers.conf /usr/local/nginx/conf/servers
+  sudo cp $DIR/installs/osp-edge/setup/nginx/services/osp-edge-rtmp.conf /usr/local/nginx/conf/services
+
+  # Setup Configuration with IP
+  sed -i "s/CHANGEME/$user_input/g" /usr/local/nginx/conf/services/osp-edge-rtmp.conf
+  sed -i "s/CHANGEME/$user_input/g" /usr/local/nginx/conf/servers/osp-edge-servers.conf
+
+  # Create HLS directory
+  sudo mkdir -p /var/www
+  sudo mkdir -p /var/www/live
+  sudo mkdir -p /var/www/live-adapt
+
+  sudo chown -R www-data:www-data /var/www
+
+  #Setup FFMPEG for recordings and Thumbnails
+  sudo add-apt-repository ppa:jonathonf/ffmpeg-4 -y
+  sudo apt-get update
+  sudo apt-get install ffmpeg -y
+
+  # Start Nginx
+  sudo systemctl restart nginx-osp.service
+}
+
 install_ejabberd() {
 
   install_prereq
@@ -419,7 +451,8 @@ if [ $# -eq 0 ]
           install_osp_rtmp
           ;;
         4 )
-
+          install_nginx_core
+          install_osp_edge
           ;;
         5 )
           install_nginx_core
