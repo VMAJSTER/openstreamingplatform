@@ -240,6 +240,11 @@ def user_deauth_check():
                     for restream in globalvars.restreamSubprocesses[channelRequest.channelLoc]:
                         #p = globalvars.restreamSubprocesses[channelRequest.channelLoc][restream]
                         restream.kill()
+                        try:
+                            restream.wait(timeout=30)
+                        except subprocess.TimeoutExpired:
+                            restream.kill()
+                            restream.wait(timeout=30)
                 try:
                     del globalvars.restreamSubprocesses[channelRequest.channelLoc]
                 except KeyError:
@@ -248,6 +253,11 @@ def user_deauth_check():
             if channelRequest.channelLoc in globalvars.edgeRestreamSubprocesses:
                 for p in globalvars.edgeRestreamSubprocesses[channelRequest.channelLoc]:
                     p.kill()
+                    try:
+                        p.wait(timeout=30)
+                    except subprocess.TimeoutExpired:
+                        p.kill()
+                        p.wait(timeout=30)
                 try:
                     del globalvars.edgeRestreamSubprocesses[channelRequest.channelLoc]
                 except KeyError:
