@@ -201,6 +201,7 @@ try:
 except:
     print("DB Load Fail due to Upgrade or Issues")
 
+print({"level": "info", "message": "Initializing OAuth Info"})
 # Initialize oAuth
 from classes.shared import oauth
 from functions.oauth import fetch_token
@@ -227,18 +228,22 @@ try:
 except:
     print("Failed Loading oAuth Providers")
 
+print({"level": "info", "message": "Initializing Flask-Mail"})
 # Initialize Flask-Mail
 from classes.shared import email
 
 email.init_app(app)
 email.app = app
 
+print({"level": "info", "message": "Performing XMPP Sanity Checks"})
 # Perform XMPP Sanity Check
 from functions import xmpp
 try:
     results = xmpp.sanityCheck()
 except Exception as e:
     print("XMPP Sanity Check Failed - " + str(e))
+
+print({"level": "info", "message": "Initializing SocketIO Handlers"})
 #----------------------------------------------------------------------------#
 # SocketIO Handler Import
 #----------------------------------------------------------------------------#
@@ -255,6 +260,7 @@ from functions.socketio import syst
 from functions.socketio import xmpp
 from functions.socketio import restream
 
+print({"level": "info", "message": "Initializing Flask Blueprints"})
 #----------------------------------------------------------------------------#
 # Blueprint Filter Imports
 #----------------------------------------------------------------------------#
@@ -289,6 +295,7 @@ app.register_blueprint(settings_bp)
 app.register_blueprint(liveview_bp)
 app.register_blueprint(oauth_bp)
 
+print({"level": "info", "message": "Initializing Template Filters"})
 #----------------------------------------------------------------------------#
 # Template Filter Imports
 #----------------------------------------------------------------------------#
@@ -297,12 +304,14 @@ from functions import templateFilters
 # Initialize Jinja2 Template Filters
 templateFilters.init(app)
 
+print({"level": "info", "message": "Setting Jinja2 Global Env Functions"})
 #----------------------------------------------------------------------------#
 # Jinja 2 Gloabl Environment Functions
 #----------------------------------------------------------------------------#
 app.jinja_env.globals.update(check_isValidChannelViewer=securityFunc.check_isValidChannelViewer)
 app.jinja_env.globals.update(check_isCommentUpvoted=votes.check_isCommentUpvoted)
 
+print({"level": "info", "message": "Setting Flask Context Processors"})
 #----------------------------------------------------------------------------#
 # Context Processors
 #----------------------------------------------------------------------------#
@@ -347,6 +356,7 @@ def inject_topics():
     topicQuery = topics.topics.query.with_entities(topics.topics.id, topics.topics.name).all()
     return dict(uploadTopics=topicQuery)
 
+print({"level": "info", "message": "Initializing Flask Signal Handlers"})
 #----------------------------------------------------------------------------#
 # Flask Signal Handlers.
 #----------------------------------------------------------------------------#
@@ -371,6 +381,7 @@ def user_registered_sighandler(app, user, confirm_token):
 def shutdown_session(exception=None):
     db.session.remove()
 
+print({"level": "info", "message": "Finalizing App Initialization"})
 #----------------------------------------------------------------------------#
 # Finalize App Init
 #----------------------------------------------------------------------------#
