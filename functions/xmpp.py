@@ -19,6 +19,7 @@ def buildMissingRooms():
         try:
             xmppQuery = ejabberd.get_room_affiliations(channel.channelLoc, 'conference.' + sysSettings.siteAddress)
         except:
+            print({"level": "info", "message": "Rebuilding missing ejabberd room - " + str(channel.channelLoc)})
             ejabberd.create_room(channel.channelLoc, 'conference.' + sysSettings.siteAddress, sysSettings.siteAddress)
 
             for key, value in room_config.items():
@@ -30,6 +31,7 @@ def buildMissingRooms():
 
 def verifyExistingRooms():
     sysSettings = settings.query.first()
+    print({"level": "info", "message": "Verifying existing ejabberd Rooms"})
     for channel in Channel.Channel.query.all():
         xmppQuery = ejabberd.get_room_affiliations(channel.channelLoc, 'conference.' + sysSettings.siteAddress)
 
@@ -74,7 +76,7 @@ def cleanInvalidRooms():
             if existingChannels is None:
                 ejabberd.destroy_room(roomName, 'conference.' + sysSettings.siteAddress)
                 count = count + 1
-    print('Invalid Rooms Pruned: ' + str(count) )
+    print({"level": "info", "message": "Completed Pruning Invalid Rooms - " + str(count)})
 
 def getChannelCounts(channelLoc):
     sysSettings = settings.query.first()
