@@ -29,7 +29,10 @@ def deleteInvitedUser(message):
         emit('checkUniqueUsernameAck', {'results': str(1)}, broadcast=False)
     else:
         emit('checkUniqueUsernameAck', {'results': str(0)}, broadcast=False)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return 'OK'
 
@@ -42,7 +45,10 @@ def bulkAddRoles(message):
             userQuery = Sec.User.query.filter_by(id=int(userID)).first()
             if userQuery is not None:
                 user_datastore.add_role_to_user(userQuery, role)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
     return 'OK'
 
@@ -88,7 +94,10 @@ def deleteChannelAdmin(message):
 
             system.newLog(1, "User " + current_user.username + " deleted Channel " + str(channelQuery.id))
             db.session.delete(channelQuery)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
     db.session.close()
     return 'OK'
 
@@ -102,15 +111,24 @@ def deleteActiveStream(message):
             for pending in pendingVideo:
                 db.session.delete(pending)
             db.session.delete(streamQuery)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return 'OK'
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(500)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(401)
 
@@ -152,7 +170,10 @@ def test_email(info):
         db.session.close()
         emit('testEmailResults', {'results': str(results)}, broadcast=False)
         return 'OK'
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return 'OK'
 
@@ -177,22 +198,34 @@ def update_default_roles(msg):
 
         UserRoleQuery = Sec.Role.query.filter_by(name="User").first()
         UserRoleQuery.default = True
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
         hasStreamer = msg['streamer']
         StreamerRoleQuery = Sec.Role.query.filter_by(name="Streamer").first()
         StreamerRoleQuery.default = hasStreamer
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
         hasRecorder = msg['recorder']
         RecorderRoleQuery = Sec.Role.query.filter_by(name="Recorder").first()
         RecorderRoleQuery.default = hasRecorder
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
         hasUploader = msg['uploader']
         UploaderRoleQuery = Sec.Role.query.filter_by(name="Uploader").first()
         UploaderRoleQuery.default = hasUploader
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
     db.session.close()
     return 'OK'
 

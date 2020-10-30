@@ -157,13 +157,19 @@ def upload_vid():
     if os.path.isfile(videoPath):
         newVideo.pending = False
         db.session.add(newVideo)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
         if ChannelQuery.autoPublish is True:
             newVideo.published = True
         else:
             newVideo.published = False
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
         if ChannelQuery.imageLocation is None:
             channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/static/img/video-placeholder.jpg")
@@ -189,7 +195,10 @@ def upload_vid():
                 newNotification = notifications.userNotification(templateFilters.get_userName(ChannelQuery.owningUser) + " has posted a new video to " + ChannelQuery.channelName + " titled " + newVideo.channelName, '/play/' + str(newVideo.id),
                                                                  "/images/" + ChannelQuery.owner.pictureLocation, sub.userID)
                 db.session.add(newNotification)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
             try:
                 subsFunc.processSubscriptions(ChannelQuery.id,
@@ -200,7 +209,10 @@ def upload_vid():
                 system.newLog(0, "Subscriptions Failed due to possible misconfiguration")
 
     videoID = newVideo.id
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     flash("Video upload complete")
     return redirect(url_for('play.view_vid_page', videoID=videoID))

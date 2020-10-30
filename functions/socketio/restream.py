@@ -16,21 +16,33 @@ def newRestream(message):
             newRestreamObject = Channel.restreamDestinations(channelQuery.id, restreamName, restreamURL)
 
             db.session.add(newRestreamObject)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
             restreamQuery = Channel.restreamDestinations.query.filter_by(name=restreamName, url=restreamURL, channel=int(restreamChannel), enabled=False).first()
             restreamID = restreamQuery.id
 
             emit('newRestreamAck', {'restreamName': restreamName, 'restreamURL': restreamURL, 'restreamID': str(restreamID), 'channelID': str(restreamChannel)}, broadcast=False)
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(401)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(500)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return 'OK'
 
@@ -41,16 +53,28 @@ def toggleRestream(message):
     if restreamQuery is not None:
         if restreamQuery.channelData.owningUser == current_user.id:
             restreamQuery.enabled = not restreamQuery.enabled
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(401)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(500)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return 'OK'
 
@@ -61,15 +85,27 @@ def deleteRestream(message):
     if restreamQuery is not None:
         if restreamQuery.channelData.owningUser == current_user.id:
             db.session.delete(restreamQuery)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(401)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(500)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return 'OK'

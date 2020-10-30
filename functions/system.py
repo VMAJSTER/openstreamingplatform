@@ -102,7 +102,10 @@ def sendTestEmail(smtpServer, smtpPort, smtpTLS, smtpSSL, smtpUsername, smtpPass
 def newLog(logType, message):
     newLogItem = logs.logs(datetime.datetime.now(), str(message), logType)
     db.session.add(newLogItem)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     return True
 
 def rebuildOSPEdgeConf():

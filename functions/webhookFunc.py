@@ -36,7 +36,10 @@ def runWebhook(channelID, triggerType, **kwargs):
                 except:
                     pass
                 system.newLog(8, "Processing Webhook for ID #" + str(hook.id) + " - Destination:" + str(url))
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return True
 

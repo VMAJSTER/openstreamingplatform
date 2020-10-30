@@ -59,7 +59,10 @@ def streamkey_check():
                 if existingStreamQuery:
                     for stream in existingStreamQuery:
                         db.session.delete(stream)
-                    db.session.commit()
+                    try:
+                        db.session.commit()
+                    except:
+                        db.session.rollback()
 
                 defaultStreamName = templateFilters.normalize_date(str(currentTime))
                 if channelRequest.defaultStreamName != "":
@@ -67,7 +70,10 @@ def streamkey_check():
 
                 newStream = Stream.Stream(key, defaultStreamName, int(channelRequest.id), channelRequest.topic)
                 db.session.add(newStream)
-                db.session.commit()
+                try:
+                    db.session.commit()
+                except:
+                    db.session.rollback()
 
                 if sysSettings.adaptiveStreaming:
                     return redirect('rtmp://' + coreNginxRTMPAddress + '/stream-data-adapt/' + channelRequest.channelLoc, code=302)
@@ -106,7 +112,10 @@ def user_auth_check():
 
             authedStream.currentViewers = int(xmpp.getChannelCounts(requestedChannel.channelLoc))
             authedStream.totalViewers = int(xmpp.getChannelCounts(requestedChannel.channelLoc))
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
             returnMessage = {'time': str(datetime.datetime.now()), 'status': 'Successful Channel Auth', 'key': str(requestedChannel.streamKey), 'channelName': str(requestedChannel.channelName), 'ipAddress': str(ipaddress)}
             print(returnMessage)
@@ -127,7 +136,10 @@ def user_auth_check():
                 newNotification = notifications.userNotification(templateFilters.get_userName(requestedChannel.owningUser) + " has started a live stream in " + requestedChannel.channelName, "/view/" + str(requestedChannel.channelLoc),
                                                                  "/images/" + str(requestedChannel.owner.pictureLocation), sub.userID)
                 db.session.add(newNotification)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
             try:
                 subsFunc.processSubscriptions(requestedChannel.id,
@@ -194,11 +206,17 @@ def record_auth_check():
             if existingRecordingQuery:
                 for recording in existingRecordingQuery:
                     db.session.delete(recording)
-                    db.session.commit()
+                    try:
+                        db.session.commit()
+                    except:
+                        db.session.rollback()
 
             newRecording = RecordedVideo.RecordedVideo(userQuery.id, channelRequest.id, channelRequest.channelName, channelRequest.topic, 0, "", currentTime, channelRequest.allowComments, False)
             db.session.add(newRecording)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
             return 'OK'
     return abort(400)
@@ -227,12 +245,18 @@ def user_deauth_check():
                 for upvote in streamUpvotes:
                     newVideoUpvote = upvotes.videoUpvotes(upvote.userID, pendingVideo.id)
                     db.session.add(newVideoUpvote)
-                db.session.commit()
+                try:
+                    db.session.commit()
+                except:
+                    db.session.rollback()
 
             for vid in streamUpvotes:
                 db.session.delete(vid)
             db.session.delete(stream)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
             # End RTMP Restream Function
             if channelRequest.restreamDestinations != []:
@@ -309,7 +333,10 @@ def rec_Complete_handler():
     else:
         pendingVideo.published = False
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
 
     if requestedChannel.imageLocation is None:
         channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/static/img/video-placeholder.jpg")
@@ -332,7 +359,10 @@ def rec_Complete_handler():
             newNotification = notifications.userNotification(templateFilters.get_userName(requestedChannel.owningUser) + " has posted a new video to " + requestedChannel.channelName + " titled " + pendingVideo.channelName, '/play/' + str(pendingVideo.id),
                                                              "/images/" + str(requestedChannel.owner.pictureLocation), sub.userID)
             db.session.add(newNotification)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
         subsFunc.processSubscriptions(requestedChannel.id, sysSettings.siteName + " - " + requestedChannel.channelName + " has posted a new video",
                          "<html><body><img src='" + sysSettings.siteProtocol + sysSettings.siteAddress + sysSettings.systemLogo + "'><p>Channel " + requestedChannel.channelName + " has posted a new video titled <u>" + pendingVideo.channelName +
@@ -343,7 +373,10 @@ def rec_Complete_handler():
 
     if os.path.isfile(fullVidPath):
         pendingVideo.length = videoFunc.getVidLength(fullVidPath)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
     db.session.close()
     return 'OK'

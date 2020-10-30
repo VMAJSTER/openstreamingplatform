@@ -58,7 +58,10 @@ def handle_upvote_total_request(streamData):
     if myVoteQuery is not None:
         myUpvote = True
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     emit('upvoteTotalResponse', {'totalUpvotes': str(totalUpvotes), 'myUpvote': str(myUpvote), 'type': vidType, 'loc': loc})
     return 'OK'
@@ -96,7 +99,10 @@ def handle_upvoteChange(streamData):
             totalQuery = upvotes.streamUpvotes.query.filter_by(streamID=stream.id).count()
             myVoteQuery = upvotes.streamUpvotes.query.filter_by(userID=current_user.id, streamID=stream.id).first()
 
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
     elif vidType == 'video':
         loc = int(loc)
@@ -118,7 +124,10 @@ def handle_upvoteChange(streamData):
             totalQuery = upvotes.videoUpvotes.query.filter_by(videoID=loc).count()
             myVoteQuery = upvotes.videoUpvotes.query.filter_by(userID=current_user.id, videoID=loc).first()
 
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
     elif vidType == "comment":
         loc = int(loc)
@@ -139,7 +148,10 @@ def handle_upvoteChange(streamData):
             totalQuery = upvotes.commentUpvotes.query.filter_by(commentID=loc).count()
             myVoteQuery = upvotes.commentUpvotes.query.filter_by(userID=current_user.id, commentID=loc).first()
 
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
     elif vidType == 'clip':
         loc = int(loc)
@@ -161,7 +173,10 @@ def handle_upvoteChange(streamData):
             totalQuery = upvotes.clipUpvotes.query.filter_by(clipID=loc).count()
             myVoteQuery = upvotes.clipUpvotes.query.filter_by(userID=current_user.id, clipID=loc).first()
 
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
     if totalQuery is not None:
         totalUpvotes = totalQuery

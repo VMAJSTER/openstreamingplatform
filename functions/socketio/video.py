@@ -21,15 +21,24 @@ def deleteVideoSocketIO(message):
         videoID = int(message['videoID'])
         result = videoFunc.deleteVideo(videoID)
         if result is True:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return 'OK'
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(500)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(401)
 
@@ -46,15 +55,24 @@ def editVideoSocketIO(message):
 
         result = videoFunc.changeVideoMetadata(videoID, videoName, videoTopic, videoDescription, videoAllowComments)
         if result is True:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return 'OK'
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(500)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(401)
 
@@ -68,15 +86,24 @@ def createclipSocketIO(message):
         stopTime = float(message['clipStop'])
         result = videoFunc.createClip(videoID, startTime, stopTime, clipName, clipDescription)
         if result[0] is True:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return 'OK'
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(500)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(401)
 
@@ -88,15 +115,24 @@ def moveVideoSocketIO(message):
 
         result = videoFunc.moveVideo(videoID, newChannel)
         if result is True:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return 'OK'
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(500)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(401)
 
@@ -132,22 +168,34 @@ def togglePublishedSocketIO(message):
                     # Create Notification for Channel Subs
                     newNotification = notifications.userNotification(templateFilters.get_userName(videoQuery.channel.owningUser) + " has posted a new video to " + videoQuery.channel.channelName + " titled " + videoQuery.channelName, '/play/' + str(videoQuery.id), "/images/" + str(videoQuery.channel.owner.pictureLocation), sub.userID)
                     db.session.add(newNotification)
-                db.session.commit()
+                try:
+                    db.session.commit()
+                except:
+                    db.session.rollback()
 
                 subsFunc.processSubscriptions(videoQuery.channel.id, sysSettings.siteName + " - " + videoQuery.channel.channelName + " has posted a new video", "<html><body><img src='" +
                                      sysSettings.siteProtocol + sysSettings.siteAddress + sysSettings.systemLogo + "'><p>Channel " + videoQuery.channel.channelName + " has posted a new video titled <u>" +
                                      videoQuery.channelName + "</u> to the channel.</p><p>Click this link to watch<br><a href='" + sysSettings.siteProtocol + sysSettings.siteAddress + "/play/" +
                                      str(videoQuery.id) + "'>" + videoQuery.channelName + "</a></p>")
 
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return 'OK'
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(500)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(401)
 
@@ -170,15 +218,24 @@ def togglePublishedClipSocketIO(message):
                                                                      clipQuery.recordedVideo.channel.channelName + " titled " + clipQuery.clipName,'/clip/' +
                                                                      str(clipQuery.id),"/images/" + str(clipQuery.recordedVideo.channel.owner.pictureLocation), sub.userID)
                     db.session.add(newNotification)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return 'OK'
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(500)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(401)
 
@@ -192,15 +249,24 @@ def changeClipMetadataSocketIO(message):
         result = videoFunc.changeClipMetadata(clipID, clipName, clipDescription)
 
         if result is True:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return 'OK'
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(500)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(401)
 
@@ -212,14 +278,23 @@ def deleteClipSocketIO(message):
         result = videoFunc.deleteClip(clipID)
 
         if result is True:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return 'OK'
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(500)
     else:
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         db.session.close()
         return abort(401)

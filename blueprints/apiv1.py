@@ -87,7 +87,10 @@ class api_1_Server(Resource):
             Displays a Listing of Server Settings
         """
         serverSettings = settings.settings.query.all()[0]
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': serverSettings.serialize() }
 
 @api.route('/channel/')
@@ -98,7 +101,10 @@ class api_1_ListChannels(Resource):
             Gets a List of all Public Channels
         """
         channelList = Channel.Channel.query.all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in channelList]}
     # Channel - Create Channel
     @api.expect(channelParserPost)
@@ -115,7 +121,10 @@ class api_1_ListChannels(Resource):
                     args = channelParserPost.parse_args()
                     newChannel = Channel.Channel(int(requestAPIKey.userID), str(uuid.uuid4()), args['channelName'], int(args['topicID']), args['recordEnabled'], args['chatEnabled'], args['commentsEnabled'], args['description'])
                     db.session.add(newChannel)
-                    db.session.commit()
+                    try:
+                        db.session.commit()
+                    except:
+                        db.session.rollback()
 
                     return {'results': {'message':'Channel Created', 'apiKey':newChannel.streamKey}}, 200
         return {'results': {'message':"Request Error"}}, 400
@@ -128,7 +137,10 @@ class api_1_ListChannel(Resource):
             Get Info for One Channel
         """
         channelList = Channel.Channel.query.filter_by(channelLoc=channelEndpointID).all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in channelList]}
     # Channel - Change Channel Name or Topic ID
     @api.expect(channelParserPut)
@@ -156,7 +168,10 @@ class api_1_ListChannel(Resource):
                                 possibleTopics = topics.topics.query.filter_by(id=int(args['topicID'])).first()
                                 if possibleTopics is not None:
                                     channelQuery.topic = int(args['topicID'])
-                        db.session.commit()
+                        try:
+                            db.session.commit()
+                        except:
+                            db.session.rollback()
                         return {'results': {'message':'Channel Updated'}}, 200
         return {'results': {'message':'Request Error'}},400
 
@@ -196,7 +211,10 @@ class api_1_ListChannel(Resource):
                         for entry in channelStreams:
                             db.session.delete(entry)
                         db.session.delete(channelQuery)
-                        db.session.commit()
+                        try:
+                            db.session.commit()
+                        except:
+                            db.session.rollback()
                         return {'results': {'message': 'Channel Deleted'}}, 200
         return {'results': {'message': 'Request Error'}}, 400
 
@@ -215,7 +233,10 @@ class api_1_ListChannelAuthed(Resource):
                 if requestAPIKey.isValid():
                     channelQuery = Channel.Channel.query.filter_by(owningUser=requestAPIKey.userID).all()
                     if channelQuery != []:
-                        db.session.commit()
+                        try:
+                            db.session.commit()
+                        except:
+                            db.session.rollback()
                         return {'results': [ob.authed_serialize() for ob in channelQuery]}
         return {'results': {'message': 'Request Error'}}, 400
 
@@ -236,7 +257,10 @@ class api_1_ListChannelAuthed(Resource):
                 if requestAPIKey.isValid():
                     channelQuery = Channel.Channel.query.filter_by(channelLoc=channelEndpointID, owningUser=requestAPIKey.userID).all()
                     if channelQuery != []:
-                        db.session.commit()
+                        try:
+                            db.session.commit()
+                        except:
+                            db.session.rollback()
                         return {'results': [ob.authed_serialize() for ob in channelQuery]}
         return {'results': {'message': 'Request Error'}}, 400
 
@@ -247,7 +271,10 @@ class api_1_ListStreams(Resource):
              Returns a List of All Active Streams
         """
         streamList = Stream.Stream.query.all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in streamList]}
 
 @api.route('/stream/<int:streamID>')
@@ -258,7 +285,10 @@ class api_1_ListStream(Resource):
              Returns Info on a Single Active Streams
         """
         streamList = Stream.Stream.query.filter_by(id=streamID).all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in streamList]}
         # Channel - Change Channel Name or Topic ID
 
@@ -285,7 +315,10 @@ class api_1_ListStream(Resource):
                                     possibleTopics = topics.topics.query.filter_by(id=int(args['topicID'])).first()
                                     if possibleTopics is not None:
                                         streamQuery.topic = int(args['topicID'])
-                            db.session.commit()
+                            try:
+                                db.session.commit()
+                            except:
+                                db.session.rollback()
                             return {'results': {'message': 'Stream Updated'}}, 200
         return {'results': {'message': 'Request Error'}}, 400
 
@@ -296,7 +329,10 @@ class api_1_ListVideos(Resource):
              Returns a List of All Recorded Videos
         """
         videoList = RecordedVideo.RecordedVideo.query.filter_by(pending=False, published=True).all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in videoList]}
 
 @api.route('/video/<int:videoID>')
@@ -307,7 +343,10 @@ class api_1_ListVideo(Resource):
              Returns Info on a Single Recorded Video
         """
         videoList = RecordedVideo.RecordedVideo.query.filter_by(id=videoID, published=True).all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in videoList]}
     @api.expect(videoParserPut)
     @api.doc(security='apikey')
@@ -335,7 +374,10 @@ class api_1_ListVideo(Resource):
                             if 'description' in args:
                                 if args['description'] is not None:
                                     videoQuery.description = args['description']
-                            db.session.commit()
+                            try:
+                                db.session.commit()
+                            except:
+                                db.session.rollback()
                             return {'results': {'message': 'Video Updated'}}, 200
         return {'results': {'message': 'Request Error'}}, 400
     @api.doc(security='apikey')
@@ -372,7 +414,10 @@ class api_1_ListVideo(Resource):
                             for view in vidViews:
                                 db.session.delete(view)
                             db.session.delete(videoQuery)
-                            db.session.commit()
+                            try:
+                                db.session.commit()
+                            except:
+                                db.session.rollback()
                             return {'results': {'message': 'Video Deleted'}}, 200
         return {'results': {'message': 'Request Error'}}, 400
 
@@ -383,7 +428,10 @@ class api_1_ListClips(Resource):
              Returns a List of All Saved Clips
         """
         clipsList = RecordedVideo.Clips.query.filter_by(published=True).all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in clipsList]}
 
 @api.route('/clip/<int:clipID>')
@@ -394,7 +442,10 @@ class api_1_ListClip(Resource):
              Returns Info on a Single Saved Clip
         """
         clipList = RecordedVideo.Clips.query.filter_by(id=clipID, published=True).all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in clipList]}
 
     @api.expect(clipParserPut)
@@ -418,7 +469,10 @@ class api_1_ListClip(Resource):
                             if 'description' in args:
                                 if args['description'] is not None:
                                     clipQuery.description = args['description']
-                            db.session.commit()
+                            try:
+                                db.session.commit()
+                            except:
+                                db.session.rollback()
                             return {'results': {'message': 'Clip Updated'}}, 200
         return {'results': {'message': 'Request Error'}}, 400
 
@@ -446,7 +500,10 @@ class api_1_ListClip(Resource):
                                 db.session.delete(vote)
 
                             db.session.delete(clipQuery)
-                            db.session.commit()
+                            try:
+                                db.session.commit()
+                            except:
+                                db.session.rollback()
                             return {'results': {'message': 'Clip Deleted'}}, 200
         return {'results': {'message': 'Request Error'}}, 400
 
@@ -458,7 +515,10 @@ class api_1_ListTopics(Resource):
              Returns a List of All Topics
         """
         topicList = topics.topics.query.all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in topicList]}
 
 @api.route('/topic/<int:topicID>')
@@ -470,7 +530,10 @@ class api_1_ListTopic(Resource):
              Returns Info on a Single Topic
         """
         topicList = topics.topics.query.filter_by(id=topicID).all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in topicList]}
 
 @api.route('/user/<string:username>')
@@ -481,7 +544,10 @@ class api_1_ListUser(Resource):
             Get Public Info for One User
         """
         userQuery = Sec.User.query.filter_by(username=username).all()
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         return {'results': [ob.serialize() for ob in userQuery]}
 
 @api.route('/xmpp/auth')

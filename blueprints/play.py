@@ -56,7 +56,10 @@ def view_vid_page(videoID):
             except:
                 return render_template(themes.checkOverride('notready.html'), video=recordedVid)
             recordedVid.length = duration
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
         topicList = topics.topics.query.all()
 
@@ -66,7 +69,10 @@ def view_vid_page(videoID):
 
         newView = views.views(1, recordedVid.id)
         db.session.add(newView)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
 
         # Function to allow custom start time on Video
         startTime = None
@@ -184,7 +190,10 @@ def comments_vid_page(videoID):
 
             newComment = comments.videoComments(currentUser,comment,recordedVid.id)
             db.session.add(newComment)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
             if recordedVid.channel.imageLocation is None:
                 channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/static/img/video-placeholder.jpg")
@@ -200,7 +209,10 @@ def comments_vid_page(videoID):
             newNotification = notifications.userNotification(templateFilters.get_userName(current_user.id) + " commented on your video - " + recordedVid.channelName, '/play/' + str(recordedVid.id),
                                                                  "/images/" + str(current_user.pictureLocation), recordedVid.owningUser)
             db.session.add(newNotification)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
             webhookFunc.runWebhook(recordedVid.channel.id, 7, channelname=recordedVid.channel.channelName,
                        channelurl=(sysSettings.siteProtocol + sysSettings.siteAddress + "/channel/" + str(recordedVid.channel.id)),
@@ -225,7 +237,10 @@ def comments_vid_page(videoID):
                         for vote in upvoteQuery:
                             db.session.delete(vote)
                         db.session.delete(commentQuery)
-                        db.session.commit()
+                        try:
+                            db.session.commit()
+                        except:
+                            db.session.rollback()
                         system.newLog(4, "Video Comment Deleted by " + current_user.username + "to Video ID #" + str(recordedVid.id))
                         flash('Comment Deleted', "success")
                     else:

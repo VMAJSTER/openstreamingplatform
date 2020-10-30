@@ -362,14 +362,20 @@ def user_registered_sighandler(app, user, confirm_token):
     system.newLog(1, "A New User has Registered - Username:" + str(user.username))
     if config.requireEmailRegistration:
         flash("An email has been sent to the email provided. Please check your email and verify your account to activate.")
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
 
 #----------------------------------------------------------------------------#
 # Additional Handlers.
 #----------------------------------------------------------------------------#
 @app.teardown_appcontext
 def shutdown_session(exception=None):
-    db.session.remove()
+    try:
+        db.session.commit
+    except:
+        db.session.rollback()
 
 #----------------------------------------------------------------------------#
 # Finalize App Init

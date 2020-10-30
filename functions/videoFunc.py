@@ -73,7 +73,10 @@ def deleteVideo(videoID):
 
         db.session.delete(recordedVid)
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         system.newLog(4, "Video Deleted - ID #" + str(videoID))
         return True
     return False
@@ -104,7 +107,10 @@ def changeVideoMetadata(videoID, newVideoName, newVideoTopic, description, allow
                    videotopic=templateFilters.get_topicName(recordedVidQuery.topic),
                    videourl=(sysSettings.siteProtocol + sysSettings.siteAddress + '/videos/' + recordedVidQuery.videoLocation),
                    videothumbnail=(sysSettings.siteProtocol + sysSettings.siteAddress + '/videos/' + recordedVidQuery.thumbnailLocation))
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         system.newLog(4, "Video Metadata Changed - ID # " + str(recordedVidQuery.id))
         return True
     return False
@@ -156,7 +162,10 @@ def moveVideo(videoID, newChannel):
                 shutil.move(videos_root + clip.thumbnailLocation, newClipLocation)
                 clip.thumbnailLocation = newChannelQuery.channelLoc + "/clips/" + coreThumbnail
 
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             system.newLog(4, "Video ID #" + str(recordedVidQuery.id) + "Moved to Channel ID" + str(
                 newChannelQuery.id) + "/" + newChannelQuery.channelLoc)
             return True
@@ -182,7 +191,10 @@ def createClip(videoID, clipStart, clipStop, clipName, clipDescription):
             newClip = RecordedVideo.Clips(recordedVidQuery.id, None, clipStart, clipStop, clipName, clipDescription)
             newClip.published = False
             db.session.add(newClip)
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
 
             newClipQuery = RecordedVideo.Clips.query.filter_by(id=newClip.id).first()
 
@@ -223,7 +235,10 @@ def createClip(videoID, clipStart, clipStop, clipName, clipDescription):
                                                                  "/images/" + str(recordedVidQuery.channel.owner.pictureLocation), sub.userID)
                 db.session.add(newNotification)
 
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return True, redirectID
     return False, None
@@ -239,7 +254,10 @@ def changeClipMetadata(clipID, name, description):
             clipQuery.clipName = system.strip_html(name)
             clipQuery.description = system.strip_html(description)
 
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             system.newLog(6, "Clip Metadata Changed - ID #" + str(clipID))
             return True
     return False
@@ -265,7 +283,10 @@ def deleteClip(clipID):
 
         db.session.delete(clipQuery)
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
         system.newLog(6, "Clip Deleted - ID #" + str(clipID))
         return True
     else:

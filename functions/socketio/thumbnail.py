@@ -55,7 +55,10 @@ def newScreenShot(message):
         else:
             emit('checkScreenShot', {'thumbnailLocation': tempLocation, 'timestamp':timeStamp}, broadcast=False)
     db.session.close()
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return 'OK'
 
@@ -79,7 +82,10 @@ def setScreenShot(message):
                 videoQuery.thumbnailLocation = newThumbnailLocation
                 videoQuery.gifLocation = newGifThumbnailLocation
 
-                db.session.commit()
+                try:
+                    db.session.commit()
+                except:
+                    db.session.rollback()
                 db.session.close()
                 try:
                     os.remove(fullthumbnailLocation)
@@ -123,12 +129,18 @@ def setScreenShot(message):
             fullNewClipThumbnailLocation = videos_root + newClipThumbnail
             clipQuery.gifLocation = newClipThumbnail
 
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
 
             gifresult = subprocess.call(['ffmpeg', '-ss', str(timeStamp), '-t', '3', '-i', videoLocation, '-filter_complex', '[0:v] fps=30,scale=w=384:h=-1,split [a][b];[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1', '-y', fullNewClipThumbnailLocation])
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return 'OK'
 
@@ -144,17 +156,29 @@ def saveUploadedThumbnailSocketIO(message):
 
                 thumbnailPath = videos_root + videoQuery.thumbnailLocation
                 shutil.move(current_app.config['VIDEO_UPLOAD_TEMPFOLDER'] + '/' + thumbnailFilename, thumbnailPath)
-                db.session.commit()
+                try:
+                    db.session.commit()
+                except:
+                    db.session.rollback()
                 db.session.close()
                 return 'OK'
             else:
-                db.session.commit()
+                try:
+                    db.session.commit()
+                except:
+                    db.session.rollback()
                 db.session.close()
                 return abort(500)
         else:
-            db.session.commit()
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
             db.session.close()
             return abort(401)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return abort(401)

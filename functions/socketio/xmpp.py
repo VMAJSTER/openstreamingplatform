@@ -27,7 +27,10 @@ def addMod(message):
         emit('addMod', {'mod': str(JID),  'channelLoc':str(channelLoc)}, broadcast=False)
     else:
         pass
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return 'OK'
 
@@ -53,7 +56,10 @@ def deleteMod(message):
             emit('deleteMod', {'mod': str(JID),  'channelLoc':str(channelLoc)}, broadcast=False)
     else:
         pass
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
     db.session.close()
     return 'OK'
 
