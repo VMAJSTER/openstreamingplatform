@@ -40,10 +40,7 @@ def toggle_chanSub(payload):
                     # Create Notification for Channel Owner on New Subs
                     newNotification = notifications.userNotification(current_user.username + " has subscribed to " + channelQuery.channelName, "/channel/" + str(channelQuery.id), "/images/" + str(current_user.pictureLocation), channelQuery.owningUser)
                     db.session.add(newNotification)
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
+                    db.session.commit()
 
                     webhookFunc.runWebhook(channelQuery.id, 10, channelname=channelQuery.channelName,
                                channelurl=(sysSettings.siteProtocol + sysSettings.siteAddress + "/channel/" + str(channelQuery.id)),
@@ -53,10 +50,7 @@ def toggle_chanSub(payload):
                                user=current_user.username, userpicture=sysSettings.siteProtocol + sysSettings.siteAddress + str(pictureLocation))
                 else:
                     db.session.delete(currentSubscription)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
                 db.session.close()
                 emit('sendChanSubResults', {'state': subState}, broadcast=False)
     db.session.close()
@@ -68,9 +62,6 @@ def markUserNotificationRead(message):
     notificationQuery = notifications.userNotification.query.filter_by(notificationID=notificationID, userID=current_user.id).first()
     if notificationQuery is not None:
         notificationQuery.read = True
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     db.session.close()
     return 'OK'

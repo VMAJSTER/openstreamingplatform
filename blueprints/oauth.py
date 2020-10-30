@@ -62,20 +62,14 @@ def oAuthAuthorize(provider):
             existingTokenQuery = Sec.OAuth2Token.query.filter_by(user=userQuery.id).all()
             for existingToken in existingTokenQuery:
                 db.session.delete(existingToken)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             newToken = None
             if 'refresh_token' in token:
                 newToken = Sec.OAuth2Token(provider, token['token_type'], token['access_token'], token['refresh_token'], token['expires_at'], userQuery.id)
             else:
                 newToken = Sec.OAuth2Token(provider, token['token_type'], token['access_token'], None, token['expires_at'], userQuery.id)
             db.session.add(newToken)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             if userQuery.active is False:
                 flash("User has been Disabled.  Please contact your administrator","error")
@@ -119,10 +113,7 @@ def oAuthAuthorize(provider):
                     user_datastore.create_user(email=userDataDict[oAuthProviderQuery.email_value], username=requestedUsername, active=True, confirmed_at=datetime.datetime.now(), authType=1, oAuthID=userDataDict[oAuthProviderQuery.id_value], oAuthProvider=provider)
                 else:
                     user_datastore.create_user(email=None, username=requestedUsername, active=True, confirmed_at=datetime.datetime.now(), authType=1, oAuthID=userDataDict[oAuthProviderQuery.id_value], oAuthProvider=provider)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
                 user = Sec.User.query.filter_by(username=requestedUsername).first()
                 defaultRoleQuery = Sec.Role.query.filter_by(default=True)
                 for role in defaultRoleQuery:
@@ -143,10 +134,7 @@ def oAuthAuthorize(provider):
                 else:
                     newToken = Sec.OAuth2Token(provider, token['token_type'], token['access_token'], None, token['expires_at'], user.id)
                 db.session.add(newToken)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
                 login_user(user)
 
                 runWebhook("ZZZ", 20, user=user.username)
@@ -177,10 +165,7 @@ def oAuthConvert(provider):
             userQuery.oAuthProvider = provider
             userQuery.oAuthID = oAuthID
             userQuery.password = None
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             flash("Conversion Successful.  Please log in again with your Provider","success")
             return redirect('/login')
         else:

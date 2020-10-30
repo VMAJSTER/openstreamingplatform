@@ -26,10 +26,7 @@ def generateInviteCode(message):
                 return False
 
         db.session.add(newInviteCode)
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
 
         emit('newInviteCode', {'code': str(newInviteCode.code), 'expiration': str(newInviteCode.expiration), 'channelID':str(newInviteCode.channelID)}, broadcast=False)
 
@@ -47,10 +44,7 @@ def deleteInviteCode(message):
         if (channelQuery.owningUser is current_user.id) or (current_user.has_role('Admin')):
             channelID = channelQuery.id
             db.session.delete(codeQuery)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             emit('inviteCodeDeleteAck', {'code': str(code), 'channelID': str(channelID)}, broadcast=False)
         else:
             emit('inviteCodeDeleteFail', {'code': 'fail', 'channelID': 'fail'}, broadcast=False)
@@ -79,16 +73,10 @@ def addUserChannelInvite(message):
             if not previouslyInvited:
                 newUserInvite = invites.invitedViewer(invitedUserQuery.id, channelID, daysToExpire)
                 db.session.add(newUserInvite)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
                 emit('invitedUserAck', {'username': username, 'added': str(newUserInvite.addedDate), 'expiration': str(newUserInvite.expiration), 'channelID': str(channelID), 'id': str(newUserInvite.id)}, broadcast=False)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
                 db.session.close()
     db.session.close()
     return 'OK'
@@ -101,10 +89,7 @@ def deleteInvitedUser(message):
     if inviteIDQuery is not None:
         if (channelQuery.owningUser is current_user.id) or (current_user.has_role('Admin')):
             db.session.delete(inviteIDQuery)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             emit('invitedUserDeleteAck', {'inviteID': str(inviteID)}, broadcast=False)
     db.session.close()
     return 'OK'

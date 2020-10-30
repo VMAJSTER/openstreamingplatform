@@ -34,10 +34,7 @@ def check_isValidChannelViewer(channelID):
                         return True
                     else:
                         db.session.delete(invite)
-                        try:
-                            db.session.commit()
-                        except:
-                            db.session.rollback()
+                        db.session.commit()
     return False
 
 def check_isUserValidRTMPViewer(userID,channelID):
@@ -56,9 +53,6 @@ def check_isUserValidRTMPViewer(userID,channelID):
                         return True
                     else:
                         db.session.delete(invite)
-                        try:
-                            db.session.commit()
-                        except:
-                            db.session.rollback()
+                        db.session.commit()
                         db.session.close()
     return False

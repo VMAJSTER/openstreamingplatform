@@ -28,10 +28,7 @@ def discord_processLogin(userDataDict, UserObj):
         handler.write(img_data)
 
     UserObj.pictureLocation = fileName
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     return True
 
 def reddit_processLogin(userDataDict, UserObj):
@@ -43,10 +40,7 @@ def reddit_processLogin(userDataDict, UserObj):
         handler.write(img_data)
 
     UserObj.pictureLocation = fileName
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     return True
 
 def facebook_processLogin(apiLocation, userDataDict, UserObj):
@@ -57,8 +51,5 @@ def facebook_processLogin(apiLocation, userDataDict, UserObj):
         handler.write(img_data)
 
     UserObj.pictureLocation = fileName
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     return True

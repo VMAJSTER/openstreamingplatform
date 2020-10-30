@@ -33,10 +33,7 @@ def addChangeWebhook(message):
         if webhookInputAction == 'new' and webhookTrigger not in invalidTriggers:
             newWebHook = webhook.webhook(webhookName, channelID, webhookEndpoint, webhookHeader, webhookPayload, webhookReqType, webhookTrigger)
             db.session.add(newWebHook)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             emit('newWebhookAck', {'webhookName': webhookName, 'requestURL':webhookEndpoint, 'requestHeader':webhookHeader, 'requestPayload':webhookPayload, 'requestType':webhookReqType, 'requestTrigger':webhookTrigger, 'requestID':newWebHook.id, 'channelID':channelID}, broadcast=False)
         elif webhookInputAction == 'edit' and webhookTrigger not in invalidTriggers:
             existingWebhookQuery = webhook.webhook.query.filter_by(channelID=channelID, id=int(webhookInputID)).first()
@@ -48,10 +45,7 @@ def addChangeWebhook(message):
                 existingWebhookQuery.requestType = webhookReqType
                 existingWebhookQuery.requestTrigger = webhookTrigger
                 emit('changeWebhookAck', {'webhookName': webhookName, 'requestURL': webhookEndpoint, 'requestHeader': webhookHeader, 'requestPayload': webhookPayload, 'requestType': webhookReqType, 'requestTrigger': webhookTrigger, 'requestID': existingWebhookQuery.id, 'channelID': channelID}, broadcast=False)
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     db.session.close()
     return 'OK'
 
@@ -65,10 +59,7 @@ def deleteWebhook(message):
         if channelQuery is not None:
             if channelQuery.owningUser is current_user.id:
                 db.session.delete(webhookQuery)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
     db.session.close()
     return 'OK'
 
@@ -88,10 +79,7 @@ def addChangeGlobalWebhook(message):
         if webhookInputAction == 'new':
             newWebHook = webhook.globalWebhook(webhookName, webhookEndpoint, webhookHeader, webhookPayload, webhookReqType, webhookTrigger)
             db.session.add(newWebHook)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             emit('newGlobalWebhookAck', {'webhookName': webhookName, 'requestURL':webhookEndpoint, 'requestHeader':webhookHeader, 'requestPayload':webhookPayload, 'requestType':webhookReqType, 'requestTrigger':webhookTrigger, 'requestID':newWebHook.id}, broadcast=False)
         elif webhookInputAction == 'edit':
             existingWebhookQuery = webhook.globalWebhook.query.filter_by(id=int(webhookInputID)).first()
@@ -103,10 +91,7 @@ def addChangeGlobalWebhook(message):
                 existingWebhookQuery.requestType = webhookReqType
                 existingWebhookQuery.requestTrigger = webhookTrigger
                 emit('changeGlobalWebhookAck', {'webhookName': webhookName, 'requestURL': webhookEndpoint, 'requestHeader': webhookHeader, 'requestPayload': webhookPayload, 'requestType': webhookReqType, 'requestTrigger': webhookTrigger, 'requestID': existingWebhookQuery.id}, broadcast=False)
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     db.session.close()
     return 'OK'
 
@@ -118,10 +103,7 @@ def deleteGlobalWebhook(message):
     if webhookQuery is not None:
         if current_user.has_role('Admin'):
             db.session.delete(webhookQuery)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
     db.session.close()
     return 'OK'
 
@@ -186,9 +168,6 @@ def testWebhook(message):
                                        videotopic=templateFilters.get_topicName(randomVideoQuery.topic), videourl=(sysSettings.siteProtocol + sysSettings.siteAddress + '/play/' + str(randomVideoQuery.id)),
                                        videothumbnail=(sysSettings.siteProtocol + sysSettings.siteAddress + '/videos/' + str(randomVideoQuery.thumbnailLocation)), comment="This is just a test comment!",
                                        message="This is just a test message!")
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     db.session.close()
     return 'OK'

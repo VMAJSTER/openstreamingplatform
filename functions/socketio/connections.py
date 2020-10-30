@@ -36,17 +36,11 @@ def handle_new_viewer(streamData):
     streamTopic = 0
 
     requestedChannel.currentViewers = currentViewers
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
 
     if stream is not None:
         stream.currentViewers = currentViewers
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
         streamName = stream.streamName
         streamTopic = stream.topic
 
@@ -85,10 +79,7 @@ def handle_new_viewer(streamData):
 
     handle_viewer_total_request(streamData, room=streamData['data'])
 
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     db.session.close()
     return 'OK'
 
@@ -104,22 +95,13 @@ def handle_add_usercount(streamData):
     requestedChannel.views = requestedChannel.views + 1
     if streamData is not None:
        streamData.totalViewers = streamData.totalViewers + 1
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
 
     newView = views.views(0, requestedChannel.id)
     db.session.add(newView)
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
 
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     db.session.close()
     return 'OK'
 
@@ -137,27 +119,18 @@ def handle_leaving_viewer(streamData):
     requestedChannel.currentViewers = currentViewers
     if requestedChannel.currentViewers < 0:
         requestedChannel.currentViewers = 0
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
 
     if stream is not None:
         stream.currentViewers = currentViewers
         if stream.currentViewers < 0:
             stream.currentViewers = 0
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
     leave_room(streamData['data'])
 
     handle_viewer_total_request(streamData, room=streamData['data'])
 
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     db.session.close()
     return 'OK'
 

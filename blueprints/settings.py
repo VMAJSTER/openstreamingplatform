@@ -94,10 +94,7 @@ def user_page():
                         pass
 
         system.newLog(1, "User Info Updated - Username:" + current_user.username)
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
 
     return redirect(url_for('.user_page'))
 
@@ -129,10 +126,7 @@ def user_addInviteCode():
                                                            inviteCode=inviteCodeQuery.id)
                     inviteCodeQuery.uses = inviteCodeQuery.uses + 1
                     db.session.add(newInvitedUser)
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
+                    db.session.commit()
                     system.newLog(3,
                                   "User Added Invite Code to Account - Username:" + current_user.username + " Channel ID #" + str(
                                       inviteCodeQuery.channelID))
@@ -180,10 +174,7 @@ def admin_page():
 
                     system.newLog(1, "User " + current_user.username + " deleted Topic " + str(topicQuery.name))
                     db.session.delete(topicQuery)
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
+                    db.session.commit()
 
                     # Initialize the Topic Cache
                     topicQuery = topics.topics.query.all()
@@ -203,18 +194,12 @@ def admin_page():
                         commentQuery = comments.videoComments.query.filter_by(userID=int(userID)).all()
                         for comment in commentQuery:
                             db.session.delete(comment)
-                        try:
-                            db.session.commit()
-                        except:
-                            db.session.rollback()
+                        db.session.commit()
 
                         inviteQuery = invites.invitedViewer.query.filter_by(userID=int(userID)).all()
                         for invite in inviteQuery:
                             db.session.delete(invite)
-                        try:
-                            db.session.commit()
-                        except:
-                            db.session.rollback()
+                        db.session.commit()
 
                         channelQuery = Channel.Channel.query.filter_by(owningUser=userQuery.id).all()
 
@@ -250,10 +235,7 @@ def admin_page():
                         system.newLog(1, "User " + current_user.username + " deleted User " + str(userQuery.username))
 
                         db.session.delete(userQuery)
-                        try:
-                            db.session.commit()
-                        except:
-                            db.session.rollback()
+                        db.session.commit()
 
                         return redirect(url_for('.admin_page', page="users"))
 
@@ -266,10 +248,7 @@ def admin_page():
 
                     if userQuery is not None and roleQuery is not None:
                         user_datastore.remove_role_from_user(userQuery, roleQuery.name)
-                        try:
-                            db.session.commit()
-                        except:
-                            db.session.rollback()
+                        db.session.commit()
                         system.newLog(1,
                                       "User " + current_user.username + " Removed Role " + roleQuery.name + " from User" + userQuery.username)
                         flash("Removed Role from User")
@@ -288,10 +267,7 @@ def admin_page():
 
                     if userQuery is not None and roleQuery is not None:
                         user_datastore.add_role_to_user(userQuery, roleQuery.name)
-                        try:
-                            db.session.commit()
-                        except:
-                            db.session.rollback()
+                        db.session.commit()
                         system.newLog(1,
                                       "User " + current_user.username + " Added Role " + roleQuery.name + " to User " + userQuery.username)
                         flash("Added Role to User")
@@ -311,10 +287,7 @@ def admin_page():
                             userQuery.active = True
                             system.newLog(1, "User " + current_user.username + " Enabled User " + userQuery.username)
                             flash("User Enabled")
-                        try:
-                            db.session.commit()
-                        except:
-                            db.session.rollback()
+                        db.session.commit()
                     return redirect(url_for('.admin_page', page="users"))
             elif action == "backup":
                 dbTables = db.engine.table_names()
@@ -538,10 +511,7 @@ def admin_page():
             if systemLogo is not None:
                 sysSettings.systemLogo = systemLogo
 
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             sysSettings = settings.settings.query.first()
 
@@ -631,10 +601,7 @@ def admin_page():
             for topic in topicQuery:
                 globalvars.topicCache[topic.id] = topic.name
 
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             return redirect(url_for('.admin_page', page="topics"))
 
         elif settingType == "edgeNode":
@@ -649,17 +616,11 @@ def admin_page():
                 if "nginx_rtmp_version" in edgeDict['rtmp']:
                     newEdge.status = 1
                     db.session.add(newEdge)
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
+                    db.session.commit()
             except:
                 newEdge.status = 0
                 db.session.add(newEdge)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
             return redirect(url_for('.admin_page', page="ospedge"))
 
@@ -738,10 +699,7 @@ def admin_page():
                     newOauthProvider.client_kwargs = oAuth_client_kwargs
 
                 db.session.add(newOauthProvider)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
                 provider = settings.oAuthProvider.query.filter_by(name=oAuth_name).first()
 
@@ -781,26 +739,17 @@ def admin_page():
                     oAuthQuery.username_value = oAuth_username
                     oAuthQuery.email_value = oAuth_email
 
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
+                    db.session.commit()
 
                     userQuery = Sec.User.query.filter_by(oAuthProvider=oldOAuthName).all()
                     for user in userQuery:
                         user.oAuthProvider = oAuth_name
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
+                    db.session.commit()
 
                     tokenQuery = Sec.OAuth2Token.query.filter_by(name=oldOAuthName).all()
                     for token in tokenQuery:
                         token.name = oAuth_name
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
+                    db.session.commit()
 
                     provider = settings.oAuthProvider.query.filter_by(name=oAuth_name).first()
 
@@ -837,15 +786,9 @@ def admin_page():
                     user.password = hash_password(str(uuid.uuid4()))
                     for token in user.oAuthToken:
                         db.session.delete(token)
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
-                db.session.delete(oAuthProviderQuery)
-                try:
                     db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.delete(oAuthProviderQuery)
+                db.session.commit()
                 flash("OAuth Provider Deleted - " + str(count) + " User(s) Converted to Local Users", "success")
             else:
                 flash("Invalid OAuth Object","errror")
@@ -860,19 +803,13 @@ def admin_page():
             passwordhash = hash_password(password)
 
             user_datastore.create_user(email=emailAddress, username=username, password=passwordhash)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             user = Sec.User.query.filter_by(username=username).first()
             user_datastore.add_role_to_user(user, 'User')
             user.authType = 0
             user.confirmed_at = datetime.datetime.now()
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             return redirect(url_for('.admin_page', page="users"))
 
         return redirect(url_for('.admin_page'))
@@ -924,17 +861,11 @@ def settings_dbRestore():
             meta = db.metadata
             for table in reversed(meta.sorted_tables):
                 db.session.execute(table.delete())
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             for roleData in restoreDict['role']:
                 user_datastore.find_or_create_role(name=roleData['name'], description=roleData['description'])
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             serverSettings = settings.settings(restoreDict['settings'][0]['siteName'],
                                                restoreDict['settings'][0]['siteProtocol'],
@@ -970,16 +901,10 @@ def settings_dbRestore():
             oldSettings = settings.settings.query.all()
             for row in oldSettings:
                 db.session.delete(row)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             db.session.add(serverSettings)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             sysSettings = settings.settings.query.first()
 
@@ -1011,10 +936,7 @@ def settings_dbRestore():
             oldEdgeNodes = settings.edgeStreamer.query.all()
             for node in oldEdgeNodes:
                 db.session.delete(node)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             if 'edgeStreamer' in restoreDict:
                 for node in restoreDict['edgeStreamer']:
@@ -1022,27 +944,18 @@ def settings_dbRestore():
                     restoredNode.status = int(node['status'])
                     restoredNode.active = eval(node['active'])
                     db.session.add(restoredNode)
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
+                    db.session.commit()
 
             ## Restores OAuth and Users
             oldUsers = Sec.User.query.all()
             for user in oldUsers:
                 db.session.delete(user)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             oldOAuth = settings.oAuthProvider.query.all()
             for provider in oldOAuth:
                 db.session.delete(provider)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             if 'o_auth_provider' in restoreDict:
                 for provider in restoreDict['o_auth_provider']:
@@ -1056,10 +969,7 @@ def settings_dbRestore():
                     if provider['client_kwargs'] != 'None':
                         newOauthProvider.client_kwargs = provider['client_kwargs']
                     db.session.add(newOauthProvider)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
                 providerQuery = settings.oAuthProvider.query.all()
                 for provider in providerQuery:
@@ -1078,10 +988,7 @@ def settings_dbRestore():
             for restoredUser in restoreDict['user']:
                 user_datastore.create_user(email=restoredUser['email'], username=restoredUser['username'],
                                            password=restoredUser['password'])
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
                 user = Sec.User.query.filter_by(username=restoredUser['username']).first()
                 user.pictureLocation = restoredUser['pictureLocation']
                 user.active = eval(restoredUser['active'])
@@ -1109,51 +1016,33 @@ def settings_dbRestore():
                     except ValueError:
                         user.confirmed_at = datetime.datetime.strptime(restoredUser['confirmed_at'],
                                                                        '%Y-%m-%d %H:%M:%S.%f')
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
                 user = Sec.User.query.filter_by(username=restoredUser['username']).first()
                 user.id = int(restoredUser['id'])
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
                 user = Sec.User.query.filter_by(username=restoredUser['username']).first()
                 for roleEntry in restoreDict['roles'][user.username]:
                     user_datastore.add_role_to_user(user, roleEntry)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
             ## Restore Topics
             oldTopics = topics.topics.query.all()
             for topic in oldTopics:
                 db.session.delete(topic)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             for restoredTopic in restoreDict['topics']:
                 topic = topics.topics(restoredTopic['name'], restoredTopic['iconClass'])
                 topic.id = int(restoredTopic['id'])
                 db.session.add(topic)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             ## Restores Channels
             oldChannels = Channel.Channel.query.all()
             for channel in oldChannels:
                 db.session.delete(channel)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             for restoredChannel in restoreDict['Channel']:
                 if restoredChannel['owningUser'] != "None":
                     channel = Channel.Channel(int(restoredChannel['owningUser']), restoredChannel['streamKey'],
@@ -1184,19 +1073,13 @@ def settings_dbRestore():
                     db.session.add(channel)
                 else:
                     flash("Error Restoring Channel: ID# " + str(restoredChannel['id']), "error")
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             ## Restore Subscriptions
             oldSubscriptions = subscriptions.channelSubs.query.all()
             for sub in oldSubscriptions:
                 db.session.delete(sub)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             if 'channel_subs' in restoreDict:
                 for restoredChannelSub in restoreDict['channel_subs']:
@@ -1206,19 +1089,13 @@ def settings_dbRestore():
                     channelSub = subscriptions.channelSubs(channelID, userID)
                     channelSub.id = int(restoredChannelSub['id'])
                     db.session.add(channelSub)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
             ## Restored Videos - Deletes if not restored to maintain DB
             oldVideos = RecordedVideo.RecordedVideo.query.all()
             for video in oldVideos:
                 db.session.delete(video)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             if 'restoreVideos' in request.form:
 
@@ -1261,18 +1138,12 @@ def settings_dbRestore():
                         db.session.add(video)
                     else:
                         flash("Error Restoring Recorded Video: ID# " + str(restoredVideo['id']), "error")
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
             oldClips = RecordedVideo.Clips.query.all()
             for clip in oldClips:
                 db.session.delete(clip)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             if 'restoreVideos' in request.form:
                 for restoredClip in restoreDict['Clips']:
                     if restoredClip['parentVideo'] != "None":
@@ -1292,19 +1163,13 @@ def settings_dbRestore():
                         db.session.add(newClip)
                     else:
                         flash("Error Restoring Clip: ID# " + str(restoredClip['id']), "error")
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
             ## Restores API Keys
             oldAPI = apikey.apikey.query.all()
             for api in oldAPI:
                 db.session.delete(api)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             for restoredAPIKey in restoreDict['apikey']:
                 if restoredAPIKey['userID'] != "None":
@@ -1327,19 +1192,13 @@ def settings_dbRestore():
                     db.session.add(key)
                 else:
                     flash("Error Restoring API Key: ID# " + str(restoredAPIKey['id']), "error")
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             ## Restores Webhooks
             oldWebhooks = webhook.webhook.query.all()
             for hook in oldWebhooks:
                 db.session.delete(hook)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             for restoredWebhook in restoreDict['webhook']:
                 if restoredWebhook['channelID'] != "None":
@@ -1350,19 +1209,13 @@ def settings_dbRestore():
                     db.session.add(hook)
                 else:
                     flash("Error Restoring Webook ID# " + restoredWebhook['id'], "error")
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             ## Restores Global Webhooks
             oldWebhooks = webhook.globalWebhook.query.all()
             for hook in oldWebhooks:
                 db.session.delete(hook)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             for restoredWebhook in restoreDict['global_webhook']:
                 hook = webhook.globalWebhook(restoredWebhook['name'], restoredWebhook['endpointURL'],
@@ -1370,19 +1223,13 @@ def settings_dbRestore():
                                              int(restoredWebhook['requestType']),
                                              int(restoredWebhook['requestTrigger']))
                 db.session.add(hook)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             ## Restores Views
             oldViews = views.views.query.all()
             for view in oldViews:
                 db.session.delete(view)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             if 'restoreVideos' in request.form:
                 for restoredView in restoreDict['views']:
@@ -1394,19 +1241,13 @@ def settings_dbRestore():
                         except ValueError:
                             view.date = datetime.datetime.strptime(restoredView['date'], '%Y-%m-%d %H:%M:%S.%f')
                         db.session.add(view)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
             ## Restores Invites
             oldInviteCode = invites.inviteCode.query.all()
             for code in oldInviteCode:
                 db.session.delete(code)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             for restoredInviteCode in restoreDict['inviteCode']:
                 if restoredInviteCode['channelID'] != "None":
@@ -1425,18 +1266,12 @@ def settings_dbRestore():
                     db.session.add(code)
                 else:
                     flash("Error Invite Code: ID# " + str(restoredInviteCode['id']), "error")
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             oldInvitedViewers = invites.invitedViewer.query.all()
             for invite in oldInvitedViewers:
                 db.session.delete(invite)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             for restoredInvitedViewer in restoreDict['invitedViewer']:
                 if restoredInvitedViewer['channelID'] != "None" and restoredInvitedViewer['userID'] != "None":
@@ -1462,19 +1297,13 @@ def settings_dbRestore():
                     db.session.add(invite)
                 else:
                     flash("Error Restoring Invited Viewer: ID# " + str(restoredInvitedViewer['id']), "error")
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             ## Restores Comments
             oldComments = comments.videoComments.query.all()
             for comment in oldComments:
                 db.session.delete(comment)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             if 'restoreVideos' in request.form:
                 for restoredComment in restoreDict['videoComments']:
@@ -1491,19 +1320,13 @@ def settings_dbRestore():
                         db.session.add(comment)
                     else:
                         flash("Error Restoring Video Comment: ID# " + str(restoredComment['id']), "error")
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
             ## Restores Ban List
             oldBanList = banList.banList.query.all()
             for ban in oldBanList:
                 db.session.delete(ban)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             for restoredBan in restoreDict['ban_list']:
                 if restoredBan['channelLoc'] != "None" and restoredBan['userID'] != "None":
@@ -1512,47 +1335,29 @@ def settings_dbRestore():
                     db.session.add(ban)
                 else:
                     flash("Error Restoring Channel Ban Entry: ID# " + str(restoredBan['id']), "error")
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             ## Restores Upvotes
             oldChannelUpvotes = upvotes.channelUpvotes.query.all()
             for upvote in oldChannelUpvotes:
                 db.session.delete(upvote)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             oldStreamUpvotes = upvotes.streamUpvotes.query.all()
             for upvote in oldStreamUpvotes:
                 db.session.delete(upvote)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             oldVideoUpvotes = upvotes.videoUpvotes.query.all()
             for upvote in oldVideoUpvotes:
                 db.session.delete(upvote)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             oldCommentUpvotes = upvotes.commentUpvotes.query.all()
             for upvote in oldCommentUpvotes:
                 db.session.delete(upvote)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             oldClipUpvotes = upvotes.clipUpvotes.query.all()
             for upvote in oldClipUpvotes:
                 db.session.delete(upvote)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             for restoredUpvote in restoreDict['channel_upvotes']:
                 if restoredUpvote['userID'] != "None" and restoredUpvote['channelID'] != "None":
@@ -1561,10 +1366,7 @@ def settings_dbRestore():
                     db.session.add(upvote)
                 else:
                     flash("Error Restoring Upvote: ID# " + str(restoredUpvote['id']), "error")
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             if 'restoreVideos' in request.form:
                 for restoredUpvote in restoreDict['stream_upvotes']:
@@ -1574,10 +1376,7 @@ def settings_dbRestore():
                         db.session.add(upvote)
                     else:
                         flash("Error Restoring Upvote: ID# " + str(restoredUpvote['id']), "error")
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             if 'restoreVideos' in request.form:
                 for restoredUpvote in restoreDict['video_upvotes']:
@@ -1586,20 +1385,14 @@ def settings_dbRestore():
                         upvote.id = int(restoredUpvote['id'])
                         db.session.add(upvote)
                     flash("Error Restoring Upvote: ID# " + str(restoredUpvote['id']), "error")
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
                 for restoredUpvote in restoreDict['clip_upvotes']:
                     if restoredUpvote['userID'] != "None" and restoredUpvote['clipID'] != "None":
                         upvote = upvotes.clipUpvotes(int(restoredUpvote['userID']), int(restoredUpvote['clipID']))
                         upvote.id = int(restoredUpvote['id'])
                         db.session.add(upvote)
                     flash("Error Restoring Upvote: ID# " + str(restoredUpvote['id']), "error")
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
             if 'restoreVideos' in request.form:
                 for restoredUpvote in restoreDict['comment_upvotes']:
                     if restoredUpvote['userID'] != "None" and restoredUpvote['commentID'] != "None":
@@ -1615,15 +1408,9 @@ def settings_dbRestore():
             if dbVersionQuery is None:
                 newDBVersion = dbVersion.dbVersion(globalvars.appDBVersion)
                 db.session.add(newDBVersion)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
-
-            try:
                 db.session.commit()
-            except:
-                db.session.rollback()
+
+            db.session.commit()
 
             # Import Theme Data into Theme Dictionary
             with open('templates/themes/' + sysSettings.systemTheme + '/theme.json') as f:
@@ -1712,10 +1499,7 @@ def settings_channels_page():
             ejabberd.change_room_option(newChannel.channelLoc, 'conference.' + sysSettings.siteAddress, 'description', current_user.username + 's chat room for the channel "' + newChannel.channelName + '"')
 
             db.session.add(newChannel)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
         elif requestType == 'change':
             streamKey = request.form['streamKey']
@@ -1799,10 +1583,7 @@ def settings_channels_page():
                                 pass
 
                 flash("Channel Edited")
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
             else:
                 flash("Invalid Change Attempt", "Error")
             redirect(url_for('.settings_channels_page'))
@@ -1942,19 +1723,13 @@ def settings_apikeys_post_page(action):
     if action == "new":
         newapi = apikey.apikey(current_user.id, 1, request.form['keyName'], request.form['expiration'])
         db.session.add(newapi)
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
         flash("New API Key Added", "success")
     elif action == "delete":
         apiQuery = apikey.apikey.query.filter_by(key=request.form['key']).first()
         if apiQuery.userID == current_user.id:
             db.session.delete(apiQuery)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             flash("API Key Deleted", "success")
         else:
             flash("Invalid API Key", "error")
@@ -1971,10 +1746,7 @@ def initialSetup():
 
         for setting in sysSettings:
             db.session.delete(setting)
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
 
         username = request.form['username']
         emailAddress = request.form['email']
@@ -2030,10 +1802,7 @@ def initialSetup():
             passwordhash = hash_password(password1)
 
             user_datastore.create_user(email=emailAddress, username=username, password=passwordhash)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             user = Sec.User.query.filter_by(username=username).first()
             user.uuid = str(uuid.uuid4())
             user.authType = 0
@@ -2057,10 +1826,7 @@ def initialSetup():
                                                uploadSelect, adaptiveStreaming, showEmptyTables, allowComments,
                                                globalvars.version)
             db.session.add(serverSettings)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             sysSettings = settings.settings.query.first()
 

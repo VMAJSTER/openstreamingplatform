@@ -29,10 +29,7 @@ def init(app, user_datastore):
     if dbVersionQuery is None:
         newDBVersion = dbVersion.dbVersion(globalvars.appDBVersion)
         db.session.add(newDBVersion)
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
         with app.app_context():
             migrate_db = migrate()
             print(migrate_db)
@@ -41,10 +38,7 @@ def init(app, user_datastore):
 
     elif dbVersionQuery.version != globalvars.appDBVersion:
         dbVersionQuery.version = globalvars.appDBVersion
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
         pass
 
     # Setup Default User Roles
@@ -60,10 +54,7 @@ def init(app, user_datastore):
         if existingTopic is None:
             newTopic = topics.topics(topic[0], topic[1])
             db.session.add(newTopic)
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
 
     # Query Null Default Roles and Set
     roleQuery = Sec.Role.query.filter_by(default=None).all()
@@ -72,10 +63,7 @@ def init(app, user_datastore):
             role.default = True
         else:
             role.default = False
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
 
     # Note: for a freshly installed system, sysSettings is None!
     sysSettings = settings.settings.query.first()
@@ -84,108 +72,63 @@ def init(app, user_datastore):
         # Set/Update the system version attribute
         if sysSettings.version is None or sysSettings.version != globalvars.version:
             sysSettings.version = globalvars.version
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         # Sets the Default Theme is None is Set - Usual Cause is Moving from Alpha to Beta
         if sysSettings.systemTheme is None or sysSettings.systemTheme == "Default":
             sysSettings.systemTheme = "Defaultv2"
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         if sysSettings.siteProtocol is None:
             sysSettings.siteProtocol = "http://"
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         if sysSettings.version == "None":
             sysSettings.version = globalvars.version
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         if sysSettings.systemLogo is None:
             sysSettings.systemLogo = "/static/img/logo.png"
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         # Sets allowComments to False if None is Set - Usual Cause is moving from Alpha to Beta
         if sysSettings.allowComments is None:
             sysSettings.allowComments = False
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         # Sets allowUploads to False if None is Set - Caused by Moving from Pre-Beta 2
         if sysSettings.allowUploads is None:
             sysSettings.allowUploads = False
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         # Sets Blank Server Message to Prevent Crash if set to None
         if sysSettings.serverMessage is None:
             sysSettings.serverMessage = ""
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         # Sets Protection System Setting if None Exists:
         if sysSettings.protectionEnabled is None:
             sysSettings.protectionEnabled = True
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         # Sets Clip Length to Infinity on Upgraded Installs
         if sysSettings.maxClipLength is None:
             sysSettings.maxClipLength = 301
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         # Checks Channel Settings and Corrects Missing Fields - Usual Cause is moving from Older Versions to Newer
         channelQuery = Channel.Channel.query.filter_by(chatBG=None).all()
         for chan in channelQuery:
             chan.chatBG = "Standard"
             chan.chatTextColor = "#FFFFFF"
             chan.chatAnimation = "slide-in-left"
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         channelQuery = Channel.Channel.query.filter_by(channelMuted=None).all()
         for chan in channelQuery:
             chan.channelMuted = False
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         channelQuery = Channel.Channel.query.filter_by(showChatJoinLeaveNotification=None).all()
         for chan in channelQuery:
             chan.showChatJoinLeaveNotification = True
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         channelQuery = Channel.Channel.query.filter_by(currentViewers=None).all()
         for chan in channelQuery:
             chan.currentViewers = 0
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         channelQuery = Channel.Channel.query.filter_by(defaultStreamName=None).all()
         for chan in channelQuery:
             chan.defaultStreamName = ""
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
         # Fix for Beta 6 Switch from Fake Clips to real clips
         clipQuery = RecordedVideo.Clips.query.filter_by(videoLocation=None).all()
@@ -196,82 +139,52 @@ def init(app, user_datastore):
             fullvideoLocation = videos_root + clipVideoLocation
             clip.videoLocation = clipVideoLocation
             clipVideo = subprocess.run(['ffmpeg', '-ss', str(clip.startTime), '-i', originalVideo, '-c', 'copy', '-t', str(clip.length), '-avoid_negative_ts', '1', fullvideoLocation])
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commmit()
 
         # Fix for Videos and Channels that were created before Publishing Option
         videoQuery = RecordedVideo.RecordedVideo.query.filter_by(published=None).all()
         for vid in videoQuery:
             vid.published = True
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         clipQuery = RecordedVideo.Clips.query.filter_by(published=None).all()
         for clip in clipQuery:
             clip.published = True
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         channelQuery = Channel.Channel.query.filter_by(autoPublish=None).all()
         for chan in channelQuery:
             chan.autoPublish = True
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         # Fixes for Channels that do not have the restream settings initialized
         channelQuery = Channel.Channel.query.filter_by(rtmpRestream=None).all()
         for chan in channelQuery:
             chan.rtmpRestream = False
             chan.rtmpRestreamDestination = ""
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
         # Fixes for Server Settings not having a Server Message Title
         if sysSettings.serverMessageTitle is None:
             sysSettings.serverMessageTitle = "Server Message"
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         if sysSettings.restreamMaxBitrate is None:
             sysSettings.restreamMaxBitrate = 3500
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
         # Fixes for Server Settings Missing the Main Page Sort Option
         if sysSettings.sortMainBy is None:
             sysSettings.sortMainBy = 0
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
         # Check for Users with Auth Type not Sent
         userQuery = Sec.User.query.filter_by(authType=None).all()
         for user in userQuery:
             user.authType = 0
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
         userQuery = Sec.User.query.all()
         for user in userQuery:
             if " " in user.username:
                 user.username = user.username.replace(" ","_")
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
 
         # Create the stream-thumb directory if it does not exist
         if not os.path.isdir(app.config['WEB_ROOT'] + "stream-thumb"):
@@ -284,42 +197,27 @@ def init(app, user_datastore):
         userQuery = Sec.User.query.filter_by(uuid=None).all()
         for user in userQuery:
             user.uuid = str(uuid.uuid4())
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         videoQuery = RecordedVideo.RecordedVideo.query.filter_by(uuid=None).all()
         for vid in videoQuery:
             vid.uuid = str(uuid.uuid4())
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         clipQuery = RecordedVideo.Clips.query.filter_by(uuid=None).all()
         for clip in clipQuery:
             clip.uuid = str(uuid.uuid4())
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
         # Generate XMPP Token for Users Missing
         userQuery = Sec.User.query.filter_by(xmppToken=None).all()
         for user in userQuery:
             user.xmppToken = str(os.urandom(32).hex())
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
         # Generate XMPP Token for Channels Missing
         channelQuery = Channel.Channel.query.filter_by(xmppToken=None).all()
         for channel in channelQuery:
             channel.xmppToken = str(os.urandom(32).hex())
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
         sysSettings = settings.settings.query.first()
 

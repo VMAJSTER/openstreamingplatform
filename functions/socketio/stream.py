@@ -24,15 +24,9 @@ def handle_viewer_total_request(streamData, room=None):
         channelQuery.currentViewers = viewers
         for stream in channelQuery.stream:
             stream.currentViewers = viewers
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
-
-    try:
         db.session.commit()
-    except:
-        db.session.rollback()
+
+    db.session.commit()
     db.session.close()
     if room is None:
         emit('viewerTotalResponse', {'data': str(viewers)})
@@ -51,10 +45,7 @@ def updateStreamData(message):
         stream = channelQuery.stream[0]
         stream.streamName = system.strip_html(message['name'])
         stream.topic = int(message['topic'])
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
 
         if channelQuery.imageLocation is None:
             channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/static/img/video-placeholder.jpg")
@@ -70,14 +61,8 @@ def updateStreamData(message):
                    streamurl=(sysSettings.siteProtocol + sysSettings.siteAddress + "/view/" + channelQuery.channelLoc),
                    streamtopic=templateFilters.get_topicName(stream.topic),
                    streamimage=(sysSettings.siteProtocol + sysSettings.siteAddress + "/stream-thumb/" + channelQuery.channelLoc + ".png"))
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
-        db.session.close()
-    try:
         db.session.commit()
-    except:
-        db.session.rollback()
+        db.session.close()
+    db.session.commit()
     db.session.close()
     return 'OK'

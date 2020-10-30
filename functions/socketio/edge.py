@@ -23,30 +23,18 @@ def checkEdgeNode(message):
                 if "nginx_rtmp_version" in edgeDict['rtmp']:
                     edgeNodeQuery.status = 1
                     emit('edgeNodeCheckResults', {'edgeID': str(edgeNodeQuery.id), 'status': str(1)}, broadcast=False)
-                    try:
-                        db.session.commit()
-                    except:
-                        db.session.rollback()
+                    db.session.commit()
                     return 'OK'
             except:
                 edgeNodeQuery.status = 0
                 emit('edgeNodeCheckResults', {'edgeID': str(edgeNodeQuery.id), 'status': str(0)}, broadcast=False)
-                try:
-                    db.session.commit()
-                except:
-                    db.session.rollback()
+                db.session.commit()
                 db.session.close()
                 return 'OK'
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
         db.session.close()
         return abort(500)
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
+    db.session.commit()
     db.session.close()
     return abort(401)
 
@@ -57,25 +45,16 @@ def toggleEdgeNode(message):
         edgeNodeQuery = settings.edgeStreamer.query.filter_by(id=edgeID).first()
         if edgeNodeQuery is not None:
             edgeNodeQuery.active = not edgeNodeQuery.active
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             system.rebuildOSPEdgeConf()
             db.session.close()
             return 'OK'
         else:
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             db.session.close()
             return abort(500)
     else:
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
         db.session.close()
         return abort(401)
 
@@ -86,24 +65,15 @@ def deleteEdgeNode(message):
         edgeNodeQuery = settings.edgeStreamer.query.filter_by(id=edgeID).first()
         if edgeNodeQuery is not None:
             db.session.delete(edgeNodeQuery)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             system.rebuildOSPEdgeConf()
             db.session.close()
             return 'OK'
         else:
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
             db.session.close()
             return abort(500)
     else:
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
         db.session.close()
         return abort(401)

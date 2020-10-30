@@ -190,10 +190,7 @@ def unsubscribe_page():
             subscriptionQuery = subscriptions.channelSubs.query.filter_by(userID=userQuery.id).all()
             for sub in subscriptionQuery:
                 db.session.delete(sub)
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
         return emailAddress + " has been removed from all subscriptions"
 
 @root_bp.route('/robots.txt')

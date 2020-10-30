@@ -48,10 +48,7 @@ def view_clip_page(clipID):
                 fullVidPath = videos_root + recordedVid.videoLocation
                 duration = videoFunc.getVidLength(fullVidPath)
                 recordedVid.length = duration
-            try:
-                db.session.commit()
-            except:
-                db.session.rollback()
+            db.session.commit()
 
             topicList = topics.topics.query.all()
 

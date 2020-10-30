@@ -32,17 +32,11 @@ class Stream(db.Model):
 
     def add_viewer(self):
         self.currentViewers = self.currentViewers + 1
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
 
     def remove_viewer(self):
         self.currentViewers = self.currentViewers - 1
-        try:
-            db.session.commit()
-        except:
-            db.session.rollback()
+        db.session.commit()
 
     def serialize(self):
         sysSettings = settings.query.first()
