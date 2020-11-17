@@ -387,6 +387,93 @@ install_osp() {
 }
 
 ##########################################################
+# Menu Options
+##########################################################
+install_menu() {
+    while true; do
+    exec 3>&1
+    selection=$(dialog \
+      --backtitle "Open Streaming Platform - $VERSION" \
+      --title "Menu" \
+      --clear \
+      --cancel-label "Exit" \
+      --menu "Please select:" $HEIGHT $WIDTH 7 \
+      "1" "Install OSP - Single Server" \
+      "2" "Install OSP-Core" \
+      "3" "Install OSP-RTMP" \
+      "4" "Install OSP-Edge" \
+      "5" "Install eJabberd" \
+      2>&1 1>&3)
+    exit_status=$?
+    exec 3>&-
+    case $exit_status in
+      $DIALOG_CANCEL)
+        clear
+        echo "Program terminated."
+        exit
+        ;;
+      $DIALOG_ESC)
+        clear
+        echo "Program aborted." >&2
+        exit 1
+        ;;
+    esac
+    case $selection in
+      0 )
+        clear
+        echo "Program terminated."
+        ;;
+      1 )
+        install_nginx_core
+        install_redis
+        install_ejabberd
+        install_osp_rtmp
+        install_osp
+        sudo cp /opt/osp-rtmp/conf/config.py.dist /opt/osp-rtmp/conf/config.py
+        sudo cp /opt/osp/conf/config.py.dist /opt/osp/conf/config.py
+        generate_ejabberd_admin
+        install_mysql
+        sudo systemctl restart nginx-osp
+        sudo systemctl start osp.target
+        sudo systemctl start osp-rtmp
+        result=$(echo "OSP Install Completed! \n\nVisit http:\\FQDN to configure\n\nInstall Log can be found at /opt/osp/logs/install.log")
+        display_result "Install OSP"
+        ;;
+      2 )
+        install_nginx_core
+        install_osp
+        sudo systemctl restart nginx-osp
+        ;;
+      3 )
+        install_nginx_core
+        install_osp_rtmp
+        sudo systemctl restart nginx-osp
+        ;;
+      4 )
+        install_nginx_core
+        install_osp_edge
+        sudo systemctl restart nginx-osp
+        ;;
+      5 )
+        install_nginx_core
+        install_ejabberd
+        sudo systemctl restart nginx-osp
+        ;;
+      6 )
+        reset_nginx
+        result=$(echo "Nginx Configuration has been reset.\n\nBackup of nginx.conf was stored at /usr/local/nginx/conf/nginx.conf.bak")
+        display_result "Reset Results"
+        ;;
+      7 )
+        reset_ejabberd
+        result=$(echo "EJabberD has been reset and OSP has been restarted")
+        display_result "Reset Results"
+        ;;
+    esac
+  done
+}
+
+##########################################################
 # Start Main Script Execution
 ##########################################################
 
@@ -400,13 +487,9 @@ if [ $# -eq 0 ]
         --clear \
         --cancel-label "Exit" \
         --menu "Please select:" $HEIGHT $WIDTH 7 \
-        "1" "Install OSP - Single Server" \
-        "2" "Install OSP-Core" \
-        "3" "Install OSP-RTMP" \
-        "4" "Install OSP-Edge" \
-        "5" "Install eJabberd" \
-        "6" "Reset Nginx Configuration" \
-        "7" "Reset EJabberD Configuration" \
+        "1" "Install..." \
+        "2" "Reset Nginx Configuration" \
+        "3" "Reset EJabberD Configuration" \
         2>&1 1>&3)
       exit_status=$?
       exec 3>&-
@@ -428,47 +511,14 @@ if [ $# -eq 0 ]
           echo "Program terminated."
           ;;
         1 )
-          install_nginx_core
-          install_redis
-          install_ejabberd
-          install_osp_rtmp
-          install_osp
-          sudo cp /opt/osp-rtmp/conf/config.py.dist /opt/osp-rtmp/conf/config.py
-          sudo cp /opt/osp/conf/config.py.dist /opt/osp/conf/config.py
-          generate_ejabberd_admin
-          install_mysql
-          sudo systemctl restart nginx-osp
-          sudo systemctl start osp.target
-          sudo systemctl start osp-rtmp
-          result=$(echo "OSP Install Completed! \n\nVisit http:\\FQDN to configure\n\nInstall Log can be found at /opt/osp/logs/install.log")
-          display_result "Install OSP"
+          install_menu
           ;;
         2 )
-          install_nginx_core
-          install_osp
-          sudo systemctl restart nginx-osp
-          ;;
-        3 )
-          install_nginx_core
-          install_osp_rtmp
-          sudo systemctl restart nginx-osp
-          ;;
-        4 )
-          install_nginx_core
-          install_osp_edge
-          sudo systemctl restart nginx-osp
-          ;;
-        5 )
-          install_nginx_core
-          install_ejabberd
-          sudo systemctl restart nginx-osp
-          ;;
-        6 )
           reset_nginx
           result=$(echo "Nginx Configuration has been reset.\n\nBackup of nginx.conf was stored at /usr/local/nginx/conf/nginx.conf.bak")
           display_result "Reset Results"
           ;;
-        7 )
+        3 )
           reset_ejabberd
           result=$(echo "EJabberD has been reset and OSP has been restarted")
           display_result "Reset Results"
