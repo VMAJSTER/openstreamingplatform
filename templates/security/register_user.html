@@ -44,7 +44,12 @@
                                 <b><i class="fas fa-key"></i> Confirm Password</b><br>
                                 {{ render_field(register_user_form.password_confirm, class_="form-control") }}
                               {% endif %}
-                              {% if recaptchaEnabled %} {{ register_user_form.recaptcha }} {% endif %}
+                              {% if recaptchaEnabled %}
+                                  {% for error in register_user_form.recaptcha.errors %}
+                                    {{ error }}
+                                  {% endfor %}
+                                  {{ register_user_form.recaptcha }}
+                              {% endif %}
                               {{ render_field(register_user_form.submit, class_="form-control") }}
                             </form>
                         </div>
