@@ -1619,7 +1619,7 @@ def settings_channels_page():
             xmppQuery = ejabberd.get_room_options(chan.channelLoc, 'conference.' + sysSettings.siteAddress)
         except:
             # Try again if request causes strange "http.client.CannotSendRequest: Request-sent" Error
-            return redirect(url_for("settings_channels_page"))
+            return redirect(url_for("settings.settings_channels_page"))
         channelOptionsDict = {}
         if 'options' in xmppQuery:
             for option in xmppQuery['options']:
