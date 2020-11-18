@@ -27,6 +27,7 @@ class ExtendedRegisterForm(RegisterForm):
 
 class ExtendedConfirmRegisterForm(ConfirmRegisterForm):
     username = StringField('username', [Required()])
+    recaptcha = RecaptchaField(public_key=globalvars.RECAPTCHA_PUBLIC_KEY, private_key=globalvars.RECAPTCHA_PRIVATE_KEY)
 
 class OSPLoginForm(LoginForm):
 
