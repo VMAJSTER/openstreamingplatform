@@ -1,5 +1,5 @@
 from flask import flash, current_app
-from flask_wtf.recaptcha import RecaptchaField
+from flask_wtf import RecaptchaField
 from flask_security.forms import RegisterForm, StringField, Required,ConfirmRegisterForm,ForgotPasswordForm, LoginForm, validators
 from flask_security import UserMixin, RoleMixin
 from .shared import db
