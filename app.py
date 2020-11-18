@@ -77,6 +77,7 @@ app.config['SECURITY_RECOVERABLE'] = True
 app.config['SECURITY_CONFIRMABLE'] = config.requireEmailRegistration
 app.config['SECURITY_SEND_REGISTER_EMAIL'] = config.requireEmailRegistration
 app.config['SECURITY_CHANGABLE'] = True
+app.config['SECURITY_TRACKABLE'] = True
 app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = ['username','email']
 app.config['SECURITY_FLASH_MESSAGES'] = True
 app.config['UPLOADED_PHOTOS_DEST'] = app.config['WEB_ROOT'] + 'images'
