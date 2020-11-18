@@ -379,7 +379,7 @@ print({"level": "info", "message": "Initializing Flask Signal Handlers"})
 #----------------------------------------------------------------------------#
 @user_registered.connect_via(app)
 def user_registered_sighandler(app, user, confirm_token, form_data=None):
-    defaultRoleQuery = Sec.Role.query.filter_by(default=True)
+    defaultRoleQuery = Sec.Role.query.filter_by(default=True).all()
     for role in defaultRoleQuery:
         user_datastore.add_role_to_user(user, role.name)
     user.authType = 0
