@@ -32,9 +32,10 @@ class OSPLoginForm(LoginForm):
         userQuery = Sec.User.query.filter_by(username=self.email.data.strip(), authType=0).first()
         if userQuery is not None:
             isvalid = True
-        userQuery = Sec.User.query.filter_by(email=self.email.data.strip(), authType=0).first()
-        if userQuery is not None:
-            isvalid = True
+        if isvalid is False:
+            userQuery = Sec.User.query.filter_by(email=self.email.data.strip(), authType=0).first()
+            if userQuery is not None:
+                isvalid = True
         if isvalid is True:
             response = super(OSPLoginForm, self).validate()
             return response
