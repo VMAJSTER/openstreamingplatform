@@ -343,9 +343,8 @@ def inject_notifications():
 
 @app.context_processor
 def inject_recaptchaEnabled():
-    recaptchaEnabled = current_app.config['RECAPTCHA_ENABLED']
+    recaptchaEnabled = app.config['RECAPTCHA_ENABLED']
     return dict(recaptchaEnabled=recaptchaEnabled)
-
 
 @app.context_processor
 def inject_oAuthProviders():
