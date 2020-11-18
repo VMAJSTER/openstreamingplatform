@@ -600,7 +600,7 @@
         });
 
         // Disconnect XMPP on Page Unload
-        $(window).bind('unload', function(){
+        $(window).bind('beforeunload', function(){
               // Leave Room First
               exitRoom(ROOMNAME + '@' + ROOM_SERVICE);
               // Execute XMPP Disconnection Process
