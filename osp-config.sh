@@ -459,16 +459,6 @@ install_menu() {
         install_ejabberd
         sudo systemctl restart nginx-osp
         ;;
-      6 )
-        reset_nginx
-        result=$(echo "Nginx Configuration has been reset.\n\nBackup of nginx.conf was stored at /usr/local/nginx/conf/nginx.conf.bak")
-        display_result "Reset Results"
-        ;;
-      7 )
-        reset_ejabberd
-        result=$(echo "EJabberD has been reset and OSP has been restarted")
-        display_result "Reset Results"
-        ;;
     esac
   done
 }
