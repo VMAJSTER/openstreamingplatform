@@ -1,5 +1,5 @@
 from flask import flash, current_app
-from flask_wtf import RecaptchaField
+from wtfrecaptcha.fields import RecaptchaField
 from flask_security.forms import RegisterForm, StringField, Required,ConfirmRegisterForm,ForgotPasswordForm, LoginForm, validators
 from flask_security import UserMixin, RoleMixin
 from .shared import db
@@ -7,14 +7,11 @@ from classes import Sec
 from globals import globalvars
 from uuid import uuid4
 
-RECAPTCHA_PUBLIC_KEY = globalvars.RECAPTCHA_PUBLIC_KEY
-RECAPTCHA_PRIVATE_KEY = globalvars.RECAPTCHA_PRIVATE_KEY
-
 class ExtendedRegisterForm(RegisterForm):
     username = StringField('username', [validators.Regexp("[^' ']+"), Required()])
     email = StringField('email', [Required()])
-    if globalvars.recaptchaEnabled is True:
-        recaptcha = RecaptchaField()
+    #if globalvars.recaptchaEnabled is True:
+    recaptcha = RecaptchaField(public_key=globalvars.RECAPTCHA_PUBLIC_KEY, private_key=globalvars.RECAPTCHA_PRIVATE_KEY)
 
     def validate(self):
         success = True
