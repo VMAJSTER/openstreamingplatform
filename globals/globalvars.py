@@ -34,3 +34,5 @@ edgeRestreamSubprocesses = {}
 
 # ejabberd Server Configuration
 ejabberdServer = "127.0.0.1"
+
+recaptchaEnabled = False
