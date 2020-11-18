@@ -25,7 +25,7 @@ def buildMissingRooms():
             for key, value in room_config.items():
                 ejabberd.change_room_option(channel.channelLoc, 'conference.' + sysSettings.siteAddress, key, value)
 
-            ejabberd.set_room_affiliation(channel.channelLoc, 'conference.' + sysSettings.siteAddress, channel.owner.username + '@' + sysSettings.siteAddress, 'owner')
+            ejabberd.set_room_affiliation(channel.channelLoc, 'conference.' + sysSettings.siteAddress, channel.owner.uuid + '@' + sysSettings.siteAddress, 'owner')
 
     return True
 
@@ -45,15 +45,15 @@ def verifyExistingRooms():
 
         for user in affiliationList:
             if user['domain'] != sysSettings.siteAddress:
-                userQuery = User.query.filter_by(username=user['username']).first()
+                userQuery = User.query.filter_by(uuid=user['username']).first()
                 if userQuery is not None:
                     ejabberd.set_room_affiliation(channel.channelLoc, 'conference.' + sysSettings.siteAddress,
-                                                  userQuery.username + '@' + sysSettings.siteAddress, user['affiliation'])
+                                                  userQuery.uuid + '@' + sysSettings.siteAddress, user['affiliation'])
 
-        if not all((d['username'] == channel.owner.username and d['domain'] == sysSettings.siteAddress) for d in
+        if not all((d['username'] == channel.owner.uuid and d['domain'] == sysSettings.siteAddress) for d in
                    affiliationList):
             ejabberd.set_room_affiliation(channel.channelLoc, 'conference.' + sysSettings.siteAddress,
-                                          channel.owner.username + '@' + sysSettings.siteAddress, 'owner')
+                                          channel.owner.uuid + '@' + sysSettings.siteAddress, 'owner')
 
         if channel.protected:
             ejabberd.change_room_option(channel.channelLoc, 'conference.' + sysSettings.siteAddress, 'password_protected', 'true')

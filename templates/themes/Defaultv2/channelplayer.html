@@ -549,6 +549,7 @@
         // Settings and Event Hooks for XMPP
         {% if current_user.is_authenticated %}
         var username = "{{current_user.username}}";
+        var userUUID = "{{current_user.uuid}}";
         var xmppPassword = "{{current_user.xmppToken}}";
         {% else %}
         var username = "Guest" + (Math.floor(Math.random() * 50000) + 1).toString();
