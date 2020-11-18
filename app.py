@@ -341,7 +341,7 @@ def inject_notifications():
         notificationList.sort(key=lambda x: x.timestamp, reverse=True)
     return dict(notifications=notificationList)
 
-@app.contect_processor
+@app.context_processor
 def inject_recaptchaEnabled():
     recaptchaEnabled = current_app.config['RECAPTCHA_ENABLED']
     return dict(recaptchaEnabled=recaptchaEnabled)
