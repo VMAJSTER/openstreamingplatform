@@ -1617,6 +1617,8 @@ def settings_channels_page():
             ejabberd.change_room_option(chan.channelLoc, 'conference.' + sysSettings.siteAddress, 'title', chan.channelName)
             ejabberd.change_room_option(chan.channelLoc, 'conference.' + sysSettings.siteAddress, 'description', current_user.username + 's chat room for the channel "' + chan.channelName + '"')
             xmppQuery = ejabberd.get_room_options(chan.channelLoc, 'conference.' + sysSettings.siteAddress)
+        except:
+            xmppQuery = ejabberd.get_room_options(chan.channelLoc, 'conference.' + sysSettings.siteAddress)
         channelOptionsDict = {}
         if 'options' in xmppQuery:
             for option in xmppQuery['options']:
