@@ -15,7 +15,7 @@ import json
 import uuid
 
 # Import 3rd Party Libraries
-from flask import Flask, redirect, request, abort, flash
+from flask import Flask, redirect, request, abort, flash, current_app
 from flask_session import Session
 from flask_security import Security, SQLAlchemyUserDatastore, login_required, current_user, roles_required
 from flask_security.signals import user_registered
@@ -92,6 +92,16 @@ app.config['SECURITY_MSG_DISABLED_ACCOUNT'] = ("Account Disabled","error")
 app.config['VIDEO_UPLOAD_TEMPFOLDER'] = app.config['WEB_ROOT'] + 'videos/temp'
 app.config["VIDEO_UPLOAD_EXTENSIONS"] = ["PNG", "MP4"]
 
+if hasattr(config,'RECAPTCHA_ENABLED'):
+    app.config['RECAPTCHA_ENABLED'] = config.RECAPTCHA_ENABLED
+    if config.RECAPTCHA_ENABLED is True:
+        try:
+            app.config['RECAPTCHA_SITE_KEY'] = config.RECAPTCHA_SITE_KEY
+            app.config['RECAPTCHA_SECRET_KEY'] = config.RECAPTCHA_SECRET_KEY
+        except:
+            print("Recaptcha Enabled, but missing Site Key or Secret Key in config.py.  Disabling ReCaptcha")
+            app.config['RECAPTCHA_ENABLED'] = False
+
 logger = logging.getLogger('gunicorn.error').handlers
 
 #----------------------------------------------------------------------------#
@@ -128,6 +138,10 @@ from functions.ejabberdctl import ejabberdctl
 #----------------------------------------------------------------------------#
 # Begin App Initialization
 #----------------------------------------------------------------------------#
+# Initialize Flask-ReCaptcha
+from classes.shared import recaptcha
+recaptcha.init_app(app)
+
 # Initialize Flask-Limiter
 if config.redisPassword == '' or config.redisPassword is None:
     app.config["RATELIMIT_STORAGE_URL"] = "redis://" + config.redisHost + ":" + str(config.redisPort)
@@ -326,6 +340,12 @@ def inject_notifications():
                 notificationList.append(entry)
         notificationList.sort(key=lambda x: x.timestamp, reverse=True)
     return dict(notifications=notificationList)
+
+@app.contect_processor
+def inject_recaptchaEnabled():
+    recaptchaEnabled = current_app.config['RECAPTCHA_ENABLED']
+    return dict(recaptchaEnabled=recaptchaEnabled)
+
 
 @app.context_processor
 def inject_oAuthProviders():

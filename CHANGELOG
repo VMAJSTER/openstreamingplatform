@@ -1,3 +1,8 @@
+0.8.0
+==============================================
+Split all subsystems of OSP into separate services.  This will allow OSP to be scaled to multiple servers/processes.
+Enabled SECURITY_TRACKABLE to allow for future IP Address filtering
+
 0.7.9
 ==============================================
 Corrected an issue where guests popping out chat did not load under defaultv2 based themes
