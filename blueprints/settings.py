@@ -1603,6 +1603,7 @@ def settings_channels_page():
     channelMods = {}
     for chan in user_channels:
         try:
+            from app import ejabberd
             xmppQuery = ejabberd.get_room_options(chan.channelLoc, 'conference.' + sysSettings.siteAddress)
         except AttributeError:
             # If Channel Doesn't Exist in ejabberd, Create
