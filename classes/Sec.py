@@ -1,14 +1,15 @@
 from flask import flash, current_app
-from flask_security.forms import RegisterForm, StringField, Required,ConfirmRegisterForm,ForgotPasswordForm, LoginForm, validators
+from flask_security.forms import RegisterForm, StringField, Required,ConfirmRegisterForm,ForgotPasswordForm, LoginForm, validators, RecaptchaField
 from flask_security import UserMixin, RoleMixin
 from .shared import db
-from .shared import recaptcha
 from classes import Sec
 from uuid import uuid4
 
 class ExtendedRegisterForm(RegisterForm):
     username = StringField('username', [validators.Regexp("[^' ']+"), Required()])
     email = StringField('email', [Required()])
+    if current_app.config['RECAPTCHA_ENABLED']:
+        recaptcha = RecaptchaField()
 
     def validate(self):
         success = True
@@ -20,9 +21,6 @@ class ExtendedRegisterForm(RegisterForm):
         if db.session.query(User).filter(User.email == self.email.data.strip()).first():
             self.email.errors.append("Email address already taken")
             success = False
-        if current_app.config['RECAPTCHA_ENABLED']:
-            if recaptcha.verify() is False:
-                success = False
         return success
 
 class ExtendedConfirmRegisterForm(ConfirmRegisterForm):

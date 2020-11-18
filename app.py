@@ -96,7 +96,7 @@ if hasattr(config,'RECAPTCHA_ENABLED'):
     app.config['RECAPTCHA_ENABLED'] = config.RECAPTCHA_ENABLED
     if config.RECAPTCHA_ENABLED is True:
         try:
-            app.config['RECAPTCHA_SITE_KEY'] = config.RECAPTCHA_SITE_KEY
+            app.config['RECAPTCHA_PUBLIC_KEY'] = config.RECAPTCHA_SITE_KEY
             app.config['RECAPTCHA_SECRET_KEY'] = config.RECAPTCHA_SECRET_KEY
         except:
             print("Recaptcha Enabled, but missing Site Key or Secret Key in config.py.  Disabling ReCaptcha")
@@ -138,10 +138,6 @@ from functions.ejabberdctl import ejabberdctl
 #----------------------------------------------------------------------------#
 # Begin App Initialization
 #----------------------------------------------------------------------------#
-# Initialize Flask-ReCaptcha
-from classes.shared import recaptcha
-recaptcha.init_app(app)
-
 # Initialize Flask-Limiter
 if config.redisPassword == '' or config.redisPassword is None:
     app.config["RATELIMIT_STORAGE_URL"] = "redis://" + config.redisHost + ":" + str(config.redisPort)
