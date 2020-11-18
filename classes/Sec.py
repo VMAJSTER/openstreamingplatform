@@ -10,8 +10,8 @@ from uuid import uuid4
 class ExtendedRegisterForm(RegisterForm):
     username = StringField('username', [validators.Regexp("[^' ']+"), Required()])
     email = StringField('email', [Required()])
-    #if globalvars.recaptchaEnabled is True:
-    recaptcha = RecaptchaField()
+    if globalvars.recaptchaEnabled is True:
+        recaptcha = RecaptchaField()
 
     def validate(self):
         success = True
@@ -26,8 +26,22 @@ class ExtendedRegisterForm(RegisterForm):
         return success
 
 class ExtendedConfirmRegisterForm(ConfirmRegisterForm):
-    username = StringField('username', [Required()])
-    recaptcha = RecaptchaField()
+    username = StringField('username', [validators.Regexp("[^' ']+"), Required()])
+    email = StringField('email', [Required()])
+    if globalvars.recaptchaEnabled is True:
+        recaptcha = RecaptchaField()
+
+    def validate(self):
+        success = True
+        if not super(ExtendedRegisterForm, self).validate():
+            success = False
+        if db.session.query(User).filter(User.username == self.username.data.strip()).first():
+            self.username.errors.append("Username already taken")
+            success = False
+        if db.session.query(User).filter(User.email == self.email.data.strip()).first():
+            self.email.errors.append("Email address already taken")
+            success = False
+        return success
 
 class OSPLoginForm(LoginForm):
 
