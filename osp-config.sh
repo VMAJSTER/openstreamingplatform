@@ -31,6 +31,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 command -v dialog >/dev/null 2>&1 || { echo >&2 "Dialog is required but it's not installed. (apt-get dialog/packman -S dialog)  Aborting."; exit 1; }
+command -v sudo >/dev/null 2>&1 || { echo >&2 "Sudo is required but it's not installed. (apt-get sudo/packman -S sudo)  Aborting."; exit 1; }
 
 #######################################################
 # Script Functions
