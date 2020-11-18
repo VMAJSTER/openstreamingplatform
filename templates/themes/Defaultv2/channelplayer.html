@@ -553,6 +553,7 @@
         var xmppPassword = "{{current_user.xmppToken}}";
         {% else %}
         var username = "Guest" + (Math.floor(Math.random() * 50000) + 1).toString();
+        var userUUID = username;
         var xmppPassword = "fakepw";
         {% endif %}
         var serverproto = '{{sysSettings.siteProtocol}}';
@@ -595,7 +596,7 @@
             connection = new Strophe.Connection(url);
             connection.rawInput = rawInput;
             connection.rawOutput = rawOutput;
-            connection.connect(username.toLowerCase() + '@' + server, xmppPassword, onConnect);
+            connection.connect(userUUID + '@' + server, xmppPassword, onConnect);
         });
 
         // Disconnect XMPP on Page Unload
