@@ -129,10 +129,10 @@ from functions.ejabberdctl import ejabberdctl
 # Initialize Recaptcha
 if hasattr(config, 'RECAPTCHA_ENABLED'):
     if config.RECAPTCHA_ENABLED is True:
+        globalvars.recaptchaEnabled = True
         try:
             app.config['RECAPTCHA_PUBLIC_KEY'] = config.RECAPTCHA_SITE_KEY
             app.config['RECAPTCHA_PRIVATE_KEY'] = config.RECAPTCHA_SECRET_KEY
-            globalvars.recaptchaEnabled = True
         except:
             print("Recaptcha Enabled, but missing Site Key or Secret Key in config.py.  Disabling ReCaptcha")
             globalvars.recaptchaEnabled = False

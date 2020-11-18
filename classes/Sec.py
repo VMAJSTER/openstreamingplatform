@@ -10,8 +10,8 @@ from uuid import uuid4
 class ExtendedRegisterForm(RegisterForm):
     username = StringField('username', [validators.Regexp("[^' ']+"), Required()])
     email = StringField('email', [Required()])
-    if globalvars.recaptchaEnabled is True:
-        recaptcha = RecaptchaField()
+    #if globalvars.recaptchaEnabled is True:
+    recaptcha = RecaptchaField()
 
     def validate(self):
         success = True
@@ -28,8 +28,8 @@ class ExtendedRegisterForm(RegisterForm):
 class ExtendedConfirmRegisterForm(ConfirmRegisterForm):
     username = StringField('username', [validators.Regexp("[^' ']+"), Required()])
     email = StringField('email', [Required()])
-    if globalvars.recaptchaEnabled is True:
-        recaptcha = RecaptchaField()
+    #if globalvars.recaptchaEnabled is True:
+    recaptcha = RecaptchaField()
 
     def validate(self):
         success = True
