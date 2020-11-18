@@ -45,7 +45,6 @@ class ExtendedConfirmRegisterForm(ConfirmRegisterForm):
 class OSPLoginForm(LoginForm):
 
     def validate(self):
-
         isvalid = False
         userQuery = Sec.User.query.filter_by(username=self.email.data.strip(), authType=0).first()
         if userQuery is not None:
