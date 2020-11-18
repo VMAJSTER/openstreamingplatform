@@ -1494,7 +1494,7 @@ def settings_channels_page():
             # Establish XMPP Channel
             from app import ejabberd
             ejabberd.create_room(newChannel.channelLoc, 'conference.' + sysSettings.siteAddress, sysSettings.siteAddress)
-            ejabberd.set_room_affiliation(newChannel.channelLoc, 'conference.' + sysSettings.siteAddress, (current_user.username) + "@" + sysSettings.siteAddress, "owner")
+            ejabberd.set_room_affiliation(newChannel.channelLoc, 'conference.' + sysSettings.siteAddress, (current_user.uuid) + "@" + sysSettings.siteAddress, "owner")
 
             # Defautl values
             for key, value in globalvars.room_config.items():
