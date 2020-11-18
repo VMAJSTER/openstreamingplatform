@@ -1602,25 +1602,24 @@ def settings_channels_page():
     channelRooms = {}
     channelMods = {}
     for chan in user_channels:
-        #try:
-        #    from app import ejabberd
-        xmppQuery = ejabberd.get_room_options(chan.channelLoc, 'conference.' + sysSettings.siteAddress)
-        #except AttributeError:
+        try:
+            xmppQuery = ejabberd.get_room_options(chan.channelLoc, 'conference.' + sysSettings.siteAddress)
+        except AttributeError:
             # If Channel Doesn't Exist in ejabberd, Create
-        #    ejabberd.create_room(chan.channelLoc, 'conference.' + sysSettings.siteAddress, sysSettings.siteAddress)
-        #    ejabberd.set_room_affiliation(chan.channelLoc, 'conference.' + sysSettings.siteAddress, (current_user.uuid) + "@" + sysSettings.siteAddress, "owner")
+            ejabberd.create_room(chan.channelLoc, 'conference.' + sysSettings.siteAddress, sysSettings.siteAddress)
+            ejabberd.set_room_affiliation(chan.channelLoc, 'conference.' + sysSettings.siteAddress, (current_user.uuid) + "@" + sysSettings.siteAddress, "owner")
 
             # Default values
-        #    for key, value in globalvars.room_config.items():
-        #        ejabberd.change_room_option(chan.channelLoc, 'conference.' + sysSettings.siteAddress, key, value)
+            for key, value in globalvars.room_config.items():
+                ejabberd.change_room_option(chan.channelLoc, 'conference.' + sysSettings.siteAddress, key, value)
 
             # Name and title
-        #    ejabberd.change_room_option(chan.channelLoc, 'conference.' + sysSettings.siteAddress, 'title', chan.channelName)
-        #    ejabberd.change_room_option(chan.channelLoc, 'conference.' + sysSettings.siteAddress, 'description', current_user.username + 's chat room for the channel "' + chan.channelName + '"')
-        #    xmppQuery = ejabberd.get_room_options(chan.channelLoc, 'conference.' + sysSettings.siteAddress)
-        #except:
+            ejabberd.change_room_option(chan.channelLoc, 'conference.' + sysSettings.siteAddress, 'title', chan.channelName)
+            ejabberd.change_room_option(chan.channelLoc, 'conference.' + sysSettings.siteAddress, 'description', current_user.username + 's chat room for the channel "' + chan.channelName + '"')
+            xmppQuery = ejabberd.get_room_options(chan.channelLoc, 'conference.' + sysSettings.siteAddress)
+        except:
             # Try again if request causes strange "http.client.CannotSendRequest: Request-sent" Error
-        #    xmppQuery = ejabberd.get_room_options(chan.channelLoc, 'conference.' + sysSettings.siteAddress)
+            return redirect(url_for("settings_channels_page"))
         channelOptionsDict = {}
         if 'options' in xmppQuery:
             for option in xmppQuery['options']:
