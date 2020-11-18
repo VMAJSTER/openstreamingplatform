@@ -136,7 +136,7 @@ install_prereq() {
           sudo pacman -S python-pip base-devel unzip wget git redis gunicorn uwsgi-plugin-python curl ffmpeg --needed --noconfirm
   else
           # Get Deb Dependencies
-          sudo apt-get install build-essential libpcre3 libpcre3-dev libssl-dev unzip libpq-dev curl git -y
+          sudo apt-get install wget build-essential libpcre3 libpcre3-dev libssl-dev unzip libpq-dev curl git -y
           # Setup Python
           sudo apt-get install python3 python3-pip uwsgi-plugin-python3 python3-dev python3-setuptools -y
           sudo pip3 install wheel
