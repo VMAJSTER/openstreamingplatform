@@ -33,7 +33,7 @@ class ExtendedConfirmRegisterForm(ConfirmRegisterForm):
 
     def validate(self):
         success = True
-        if not super(ExtendedRegisterForm, self).validate():
+        if not super(ExtendedConfirmRegisterForm, self).validate():
             success = False
         if db.session.query(User).filter(User.username == self.username.data.strip()).first():
             self.username.errors.append("Username already taken")
