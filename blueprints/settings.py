@@ -808,8 +808,12 @@ def admin_page():
             db.session.commit()
 
             user = Sec.User.query.filter_by(username=username).first()
-            user_datastore.add_role_to_user(user, 'User')
+            defaultRoleQuery = Sec.Role.query.filter_by(default=True).all()
+            for role in defaultRoleQuery:
+                user_datastore.add_role_to_user(user, role.name)
             user.authType = 0
+            user.xmppToken = str(os.urandom(32).hex())
+            user.uuid = str(uuid.uuid4())
             user.confirmed_at = datetime.datetime.now()
             db.session.commit()
             return redirect(url_for('.admin_page', page="users"))
