@@ -4,6 +4,7 @@ Split all subsystems of OSP into separate services.  This will allow OSP to be s
 Enabled SECURITY_TRACKABLE to allow for future IP Address filtering
 Added Google ReCaptcha to Registration as an option for Reducing Spam Bots from Registering Users
 ejabberd Usernames are now tracked by User UUID to prevent issues where a username may contain invalid characters.  User UUIDs can be found in the user settings screen
+Fixed an issue where Users created in the Admin Console did not have XMPP Tokens or UUIDs
 
 0.7.9
 ==============================================
