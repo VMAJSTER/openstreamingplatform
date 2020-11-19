@@ -37,10 +37,10 @@ def view_page(loc):
                 return render_template(themes.checkOverride('channelProtectionAuth.html'))
 
         # Pull ejabberd Chat Options for Room
-        from app import ejabberd
-        chatOptions = ejabberd.get_room_options(requestedChannel.channelLoc, 'conference.' + sysSettings.siteAddress)
-        for option in chatOptions:
-            print(option)
+        #from app import ejabberd
+        #chatOptions = ejabberd.get_room_options(requestedChannel.channelLoc, 'conference.' + sysSettings.siteAddress)
+        #for option in chatOptions:
+        #    print(option)
 
         streamData = Stream.Stream.query.filter_by(streamKey=requestedChannel.streamKey).first()
         streamURL = ''
