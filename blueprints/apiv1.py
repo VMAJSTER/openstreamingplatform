@@ -114,6 +114,23 @@ class api_1_ListChannels(Resource):
                 if requestAPIKey.isValid():
                     args = channelParserPost.parse_args()
                     newChannel = Channel.Channel(int(requestAPIKey.userID), str(uuid.uuid4()), args['channelName'], int(args['topicID']), args['recordEnabled'], args['chatEnabled'], args['commentsEnabled'], args['description'])
+
+                    userQuery = Sec.User.query.filter_by(id=int(requestAPIKey.userID)).first()
+
+                    # Establish XMPP Channel
+                    from app import ejabberd
+                    sysSettings = settings.settings.query.all()[0]
+                    ejabberd.create_room(newChannel.channelLoc, 'conference.' + sysSettings.siteAddress, sysSettings.siteAddress)
+                    ejabberd.set_room_affiliation(newChannel.channelLoc, 'conference.' + sysSettings.siteAddress, int(requestAPIKey.userID) + "@" + sysSettings.siteAddress, "owner")
+
+                    # Default values
+                    for key, value in globalvars.room_config.items():
+                        ejabberd.change_room_option(newChannel.channelLoc, 'conference.' + sysSettings.siteAddress, key, value)
+
+                    # Name and title
+                    ejabberd.change_room_option(newChannel.channelLoc, 'conference.' + sysSettings.siteAddress, 'title', newChannel.channelName)
+                    ejabberd.change_room_option(newChannel.channelLoc, 'conference.' + sysSettings.siteAddress, 'description', userQuery.username + 's chat room for the channel "' + newChannel.channelName + '"')
+
                     db.session.add(newChannel)
                     db.session.commit()
 
