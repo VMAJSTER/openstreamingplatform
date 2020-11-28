@@ -218,7 +218,6 @@ install_nginx_core() {
   sudo systemctl daemon-reload
   sudo systemctl enable nginx-osp.service
 
-
   install_ffmpeg
 
   # Create HLS directory
@@ -387,6 +386,32 @@ install_osp() {
   fi
 }
 
+upgrade_osp() {
+  if cd /opt/osp
+  then
+    sudo git pull
+    sudo cp -y /opt/osp/setup/nginx/locations/* /usr/local/nginx/conf/locations
+    sudo cp -y /opt/osp/setup/nginx/upstream/* /usr/local/nginx/conf/upstream
+  else
+    echo "Error: /opt/osp Does not Exist"
+  fi
+}
+
+upgrade_rtmp() {
+  sudo git pull
+  sudo pip3 install -r $DIR/installs/osp-rtmp/setup/requirements.txt
+  sudo cp $DIR/installs/osp-rtmp/setup/nginx/servers/*.conf /usr/local/nginx/conf/servers
+  sudo cp $DIR/installs/osp-rtmp/setup/nginx/services/*.conf /usr/local/nginx/conf/services
+  sudo cp -R $DIR/installs/osp-rtmp/* /opt/osp-rtmp
+  sudo cp -R $DIR/classes/*.py /opt/osp-rtmp/classes
+}
+
+upgrade_ejabberd() {
+  sudo git pull
+  sudo cp $DIR/installs/ejabberd/setup/auth_osp.py /usr/local/ejabberd/conf/auth_osp.py
+  sudo cp $DIR/installs/ejabberd/setup/nginx/locations/ejabberd.conf /usr/local/nginx/conf/locations/
+}
+
 ##########################################################
 # Menu Options
 ##########################################################
@@ -464,6 +489,80 @@ install_menu() {
   done
 }
 
+upgrade_menu() {
+    while true; do
+    exec 3>&1
+    selection=$(dialog \
+      --backtitle "Open Streaming Platform - $VERSION" \
+      --title "Menu" \
+      --clear \
+      --cancel-label "Exit" \
+      --menu "Please select:" $HEIGHT $WIDTH 7 \
+      "1" "Upgrade OSP - Single Server" \
+      "2" "Upgrade OSP-Core" \
+      "3" "Upgrade OSP-RTMP" \
+      "4" "Upgrade OSP-Edge" \
+      "5" "Upgrade eJabberd" \
+      2>&1 1>&3)
+    exit_status=$?
+    exec 3>&-
+    case $exit_status in
+      $DIALOG_CANCEL)
+        clear
+        echo "Program terminated."
+        exit
+        ;;
+      $DIALOG_ESC)
+        clear
+        echo "Program aborted." >&2
+        exit 1
+        ;;
+    esac
+    case $selection in
+      0 )
+        clear
+        echo "Program terminated."
+        ;;
+      1 )
+        upgrade_osp
+        upgrade_rtmp
+        upgrade_ejabberd
+        upgrade_db
+        sudo systemctl restart ejabberd
+        sudo systemctl restart nginx-osp
+        sudo systemctl restart osp.target
+        sudo systemctl restart osp-rtmp
+        result=$(echo "OSP - Single Server Upgrade Completed!")
+        display_result "Upgrade OSP"
+        ;;
+      2 )
+        upgrade_osp
+        upgrade_db
+        sudo systemctl restart nginx-osp
+        sudo systemctl restart osp.target
+        result=$(echo "OSP - Core Upgrade Completed!")
+        display_result "Upgrade OSP"
+        ;;
+      3 )
+        upgrade_rtmp
+        sudo systemctl restart nginx-osp
+        sudo systemctl restart osp-rtmp
+        result=$(echo "OSP - RTMP Upgrade Completed!")
+        display_result "Upgrade OSP"
+        ;;
+      4 )
+        ;;
+      5 )
+        upgrade_ejabberd
+        sudo systemctl restart ejabberd
+        sudo systemctl restart nginx-osp
+        result=$(echo "eJabberd Upgrade Completed!")
+        display_result "Upgrade OSP"
+        ;;
+    esac
+  done
+}
+
 ##########################################################
 # Start Main Script Execution
 ##########################################################
@@ -479,8 +578,9 @@ if [ $# -eq 0 ]
         --cancel-label "Exit" \
         --menu "Please select:" $HEIGHT $WIDTH 7 \
         "1" "Install..." \
-        "2" "Reset Nginx Configuration" \
-        "3" "Reset EJabberD Configuration" \
+        "2" "Upgrade..." \
+        "3" "Reset Nginx Configuration" \
+        "4" "Reset EJabberD Configuration" \
         2>&1 1>&3)
       exit_status=$?
       exec 3>&-
@@ -505,11 +605,14 @@ if [ $# -eq 0 ]
           install_menu
           ;;
         2 )
+          upgrade_menu
+          ;;
+        3 )
           reset_nginx
           result=$(echo "Nginx Configuration has been reset.\n\nBackup of nginx.conf was stored at /usr/local/nginx/conf/nginx.conf.bak")
           display_result "Reset Results"
           ;;
-        3 )
+        4 )
           reset_ejabberd
           result=$(echo "EJabberD has been reset and OSP has been restarted")
           display_result "Reset Results"
