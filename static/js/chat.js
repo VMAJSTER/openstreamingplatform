@@ -218,6 +218,12 @@ function room_pres_handler(a, b, c) {
     var presenceType = 'online';
   }
 
+  if (presenceType == "unavailable") {
+      if (status.includes("307")) {
+          console.log(Strophe.getResourceFromJid(from) + " was kicked from the room");
+      }
+  }
+
   // Check if is own status change (Kicks/Bans/Etc)
   if (from === ROOMNAME + '@' + ROOM_SERVICE + '/' + username && to === fullJID) {
       console.log("Current User Status Change to: " + presenceType)
