@@ -218,12 +218,17 @@ function room_pres_handler(a, b, c) {
     var presenceType = 'online';
   }
 
+  // Handle Public Presence Notifications
+  var messageTimestamp = moment().format('hh:mm A');
   if (presenceType == "unavailable") {
-      var messageTimestamp = moment().format('hh:mm A');
-      var msgfrom = "SERVER";
 
+      var msgfrom = "SERVER";
       if (status.includes("307")) {
           msg = Strophe.getResourceFromJid(from) + " was kicked from the room.";
+      } else if (status.includes("301")) {
+          msg = Strophe.getResourceFromJid(from) + " was banned from the room.";
+      } else {
+          msg = Strophe.getResourceFromJid(from) + " has left the room.";
       }
 
       var tempNode = document.querySelector("div[data-type='chatmessagetemplate']").cloneNode(true);
@@ -237,8 +242,23 @@ function room_pres_handler(a, b, c) {
       if (needsScroll) {
           scrollChatWindow();
       }
+  } else if (presenceType == null) {
+      var msgfrom = "SERVER";
+      msg = Strophe.getResourceFromJid(from) + " has joined the room.";
 
+      var tempNode = document.querySelector("div[data-type='chatmessagetemplate']").cloneNode(true);
+      tempNode.querySelector("span.chatTimestamp").textContent = messageTimestamp;
+      tempNode.querySelector("span.chatUsername").innerHTML = '<span class="user">' + msgfrom + '</span>';
+      tempNode.querySelector("span.chatMessage").innerHTML = format_msg(msg);
+      tempNode.style.display = "block";
+      chatDiv = document.getElementById("chat");
+      var needsScroll = checkChatScroll()
+      chatDiv.appendChild(tempNode);
+      if (needsScroll) {
+          scrollChatWindow();
+      }
   }
+
 
   // Check if is own status change (Kicks/Bans/Etc)
   if (from === ROOMNAME + '@' + ROOM_SERVICE + '/' + username && to === fullJID) {
