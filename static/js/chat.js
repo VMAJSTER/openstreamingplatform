@@ -244,24 +244,6 @@ function room_pres_handler(a, b, c) {
       }
   }
 
-  if (status.includes("101")) {
-      var msgfrom = "SERVER";
-      msg = Strophe.getResourceFromJid(from) + " has joined the room.";
-
-      var tempNode = document.querySelector("div[data-type='chatmessagetemplate']").cloneNode(true);
-      tempNode.querySelector("span.chatTimestamp").textContent = messageTimestamp;
-      tempNode.querySelector("span.chatUsername").innerHTML = '<span class="user">' + msgfrom + '</span>';
-      tempNode.querySelector("span.chatMessage").innerHTML = format_msg(msg);
-      tempNode.style.display = "block";
-      chatDiv = document.getElementById("chat");
-      var needsScroll = checkChatScroll()
-      chatDiv.appendChild(tempNode);
-      if (needsScroll) {
-          scrollChatWindow();
-      }
-  }
-
-
   // Check if is own status change (Kicks/Bans/Etc)
   if (from === ROOMNAME + '@' + ROOM_SERVICE + '/' + username && to === fullJID) {
       console.log("Current User Status Change to: " + presenceType)
@@ -345,7 +327,11 @@ function onMessage(msg) {
 
           var tempNode = document.querySelector("div[data-type='chatmessagetemplate']").cloneNode(true);
           tempNode.querySelector("span.chatTimestamp").textContent = messageTimestamp;
-          tempNode.querySelector("span.chatUsername").innerHTML = '<span class="user"><a href="javascript:void(0);" onclick="displayProfileBox(this)">' + Strophe.getResourceFromJid(from) + '</a></span>';
+          if (Strophe.getResourceFromJid(from) == 'SERVER') {
+              tempNode.querySelector("span.chatUsername").innerHTML = '<span class="user">' + Strophe.getResourceFromJid(from) + '</span>';
+          } else {
+              tempNode.querySelector("span.chatUsername").innerHTML = '<span class="user"><a href="javascript:void(0);" onclick="displayProfileBox(this)">' + Strophe.getResourceFromJid(from) + '</a></span>';
+          }
           tempNode.querySelector("span.chatMessage").innerHTML = format_msg(msg);
           tempNode.style.display = "block";
           chatDiv = document.getElementById("chat");
