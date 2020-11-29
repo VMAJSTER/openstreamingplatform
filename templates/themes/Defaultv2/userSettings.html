@@ -17,9 +17,21 @@
                             <div class="row">
                                 <div class="col-12 col-md-6">
                                     <form action="/settings/user" enctype=multipart/form-data method="post">
-                                        <div class="form-group">
-                                            <label for="userName"><b>User Name</b></label>
-                                            <input type="text" name="userName" id="userName" class="form-control" value="{{current_user.username}}" disabled>
+                                        <div class="row">
+                                            <div class="col-2">
+                                                <img width="128" height="128" class="userPhoto rounded" src="/images/{{current_user.pictureLocation}}" onerror="this.src='/static/img/user2.png';">
+                                                <div class="custom-file">
+                                                  <input type="file" name="photo" class="custom-file-input" id="customFile">
+                                                  <label class="custom-file-label" for="customFile">Upload a Photo</label><br>
+                                                  <small style="color:red;">Recommended Resolution: 128x128</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-10">
+                                                <div class="form-group">
+                                                    <label for="userName"><b>User Name</b></label>
+                                                    <input type="text" name="userName" id="userName" class="form-control" value="{{current_user.username}}" disabled>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="form-group">
                                             <label for="emailAddress"><b>Email Address</b></label>
@@ -42,14 +54,11 @@
                                         </div>
                                         <hr>
                                         <b>User Picture</b><br>
-                                        <small style="color:red;">Recommended Resolution: 128x128</small><br>
+
                                         <div class="d-flex justify-content-center">
                                             <img width="128" height="128" class="userPhoto" src="/images/{{current_user.pictureLocation}}" onerror="this.src='/static/img/user2.png';">
                                         </div>
-
-                                        <input type="file" name="photo" class="form-control-file" value="Upload a Photo" style="margin-top:10px;width:384px;"><br>
                                         <hr>
-
                                         <button type="submit" class="btn btn-primary">Submit</button>
                                     </form>
                                 </div>
