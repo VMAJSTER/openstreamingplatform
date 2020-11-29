@@ -7,6 +7,7 @@ import socket
 import xmltodict
 import git
 import re
+import psutil
 
 import requests
 from flask import request, flash, render_template, redirect, url_for, Blueprint, current_app, Response, session, abort
@@ -49,7 +50,17 @@ settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
 @login_required
 def user_page():
     if request.method == 'GET':
-        return render_template(themes.checkOverride('userSettings.html'))
+        # Checks Total Used Space
+        userChannels = Channel.Channel.query.filter_by(owningUser=current_user.id).all()
+        totalSpaceUsed = 0
+        channelUsage = []
+        for chan in userChannels:
+            diskUsage = psutil.disk_usage(globalvars.videoRoot + 'videos/' + chan.channelLoc)[3]
+            channelUsage.append({'name':chan.channelName,'usage':diskUsage})
+            totalSpaceUsed = totalSpaceUsed + diskUsage
+
+        return render_template(themes.checkOverride('userSettings.html'), totalSpaceUsed=totalSpaceUsed, channelUsage=channelUsage)
+
     elif request.method == 'POST':
 
         biography = request.form['biography']

@@ -70,6 +70,30 @@
                                         </div>
                                     </div>
                                 </div>
+                                <hr>
+                                <b>Storage Usage</b>
+                                <div class="row">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th class="col">Channel Name</th>
+                                                <th class="col">Usage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for chan in channelUsage %}
+                                            <tr>
+                                                <td>{{ chan['name'] }}</td>
+                                                <td>{{ chan['usage'] }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                            <tr>
+                                                <td></td>
+                                                <td>{{ totalSpaceUsed }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                                 <button type="submit" class="btn btn-primary">Submit</button>
                             </form>
                         </div>
