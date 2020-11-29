@@ -556,7 +556,7 @@ upgrade_menu() {
         upgrade_ejabberd
         sudo systemctl restart ejabberd
         sudo systemctl restart nginx-osp
-        result=$(echo "eJabberd Upgrade Completed!")
+        result=$(echo "eJabberd Upgrade Completed! You will need to edit /usr/local/ejabberd/conf/auth_osp.py again")
         display_result "Upgrade OSP"
         ;;
     esac
