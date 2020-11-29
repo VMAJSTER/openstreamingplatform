@@ -203,9 +203,6 @@ function room_msg_handler(a, b, c) {
 
 function room_pres_handler(a, b, c) {
   var presenceStatement = a;
-  console.log(a);
-  console.log(b);
-  console.log(c);
   var from = presenceStatement.attributes.from.value;
   var to = presenceStatement.attributes.to.value;
   var status = [];
@@ -245,7 +242,9 @@ function room_pres_handler(a, b, c) {
       if (needsScroll) {
           scrollChatWindow();
       }
-  } else if (presenceType == null) {
+  }
+
+  if (status.includes("101")) {
       var msgfrom = "SERVER";
       msg = Strophe.getResourceFromJid(from) + " has joined the room.";
 
