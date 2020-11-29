@@ -158,7 +158,7 @@ def get_diskUsage(channelLocation):
             for f in filenames:
                 fp = os.path.join(dirpath, f)
                 total_size += os.path.getsize(fp)
-        return "{:,}".format(total_size)
+        return total_size
 
 def testList(obj):
     if type(obj) == list:
