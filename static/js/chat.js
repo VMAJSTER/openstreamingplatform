@@ -279,8 +279,8 @@ function onMessage(msg) {
   var messageElement = msg.getElementsByTagName('body');
   var timestampElement = msg.getElementsByTagName('delay');
 
-  if (from == null) {
-      from = "SERVER";
+  if (Strophe.getResourceFromJid(from) == null) {
+      from = ROOMNAME + "@" + ROOM_SERVICE + "/SERVER";
   }
 
   if  (!(CHATSTATUS.muteList.includes(Strophe.getResourceFromJid(from)))) {
