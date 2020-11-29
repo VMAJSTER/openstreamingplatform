@@ -56,10 +56,18 @@ def user_page():
         channelUsage = []
         for chan in userChannels:
             try:
-                diskUsage = psutil.disk_usage(globalvars.videoRoot + 'videos/' + chan.channelLoc)[3]
+                videos_root = globalvars.videoRoot + 'videos/'
+                channelLocation = videos_root + chan.channelLoc
+
+                total_size = 0
+                for dirpath, dirnames, filenames in os.walk(channelLocation):
+                    for f in filenames:
+                        fp = os.path.join(dirpath, f)
+                        total_size += os.path.getsize(fp)
+                totalSpaceUsed = totalSpaceUsed + total_size
             except FileNotFoundError:
                 diskUsage = 0
-            channelUsage.append({'name': chan.channelName, 'usage': diskUsage})
+            channelUsage.append({'name': chan.channelName, 'usage': total_size})
             totalSpaceUsed = totalSpaceUsed + diskUsage
 
         return render_template(themes.checkOverride('userSettings.html'), totalSpaceUsed=totalSpaceUsed, channelUsage=channelUsage)
