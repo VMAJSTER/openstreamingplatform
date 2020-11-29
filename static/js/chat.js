@@ -220,7 +220,7 @@ function room_pres_handler(a, b, c) {
 
   if (presenceType == "unavailable") {
       var messageTimestamp = moment().format('hh:mm A');
-      var from = "SERVER";
+      var msgfrom = "SERVER";
 
       if (status.includes("307")) {
           msg = Strophe.getResourceFromJid(from) + " was kicked from the room.";
@@ -228,7 +228,7 @@ function room_pres_handler(a, b, c) {
 
       var tempNode = document.querySelector("div[data-type='chatmessagetemplate']").cloneNode(true);
       tempNode.querySelector("span.chatTimestamp").textContent = messageTimestamp;
-      tempNode.querySelector("span.chatUsername").innerHTML = '<span class="user">' + from + '</span>';
+      tempNode.querySelector("span.chatUsername").innerHTML = '<span class="user">' + msgfrom + '</span>';
       tempNode.querySelector("span.chatMessage").innerHTML = format_msg(msg);
       tempNode.style.display = "block";
       chatDiv = document.getElementById("chat");
