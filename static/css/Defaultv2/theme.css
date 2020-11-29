@@ -102,23 +102,22 @@ body {
     display: block;
     position: relative;
     width: 100%;
-    margin: auto;
+    margin: 10px 0px 0px 0px;
     cursor: pointer;
     border: 0;
-    height: 50px;
+    height: 25px;
     border-radius: 5px;
     outline: 0;
+    overflow: hidden;
 }
 .file-upload-button:hover:after {
     background: #5978f8;
 }
 .file-upload-button:after {
     transition: 200ms all ease;
-    border-bottom: 3px solid rgba(0,0,0,.2);
-    background: #3c5ff4;
-    text-shadow: 0 2px 0 rgba(0,0,0,.2);
+    background: #0275d8;
     color: #fff;
-    font-size: 20px;
+    font-size: 16px;
     text-align: center;
     position: absolute;
     top: 0;
@@ -126,9 +125,9 @@ body {
     width: 100%;
     height: 100%;
     display: block;
-    content: 'Upload Something';
-    line-height: 60px;
-    border-radius: 5px;
+    content: 'Upload';
+    line-height: 20px;
+    border-radius: 2px;
 }
 
 .card-cut-text {

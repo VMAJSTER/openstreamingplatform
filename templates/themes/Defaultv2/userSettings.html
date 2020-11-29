@@ -53,12 +53,6 @@
                                             <textarea class="form-control" name="biography" id="biography-{{current_user.id}}" value="" maxlength="2048">{{current_user.biography}}</textarea>
                                         </div>
                                         <hr>
-                                        <b>User Picture</b><br>
-
-                                        <div class="d-flex justify-content-center">
-                                            <img width="128" height="128" class="userPhoto" src="/images/{{current_user.pictureLocation}}" onerror="this.src='/static/img/user2.png';">
-                                        </div>
-                                        <hr>
                                         <button type="submit" class="btn btn-primary">Submit</button>
                                     </form>
                                 </div>
