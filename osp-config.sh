@@ -390,8 +390,8 @@ upgrade_osp() {
   if cd /opt/osp
   then
     sudo git pull
-    sudo cp -y /opt/osp/setup/nginx/locations/* /usr/local/nginx/conf/locations
-    sudo cp -y /opt/osp/setup/nginx/upstream/* /usr/local/nginx/conf/upstream
+    sudo cp -rf /opt/osp/setup/nginx/locations/* /usr/local/nginx/conf/locations
+    sudo cp -rf /opt/osp/setup/nginx/upstream/* /usr/local/nginx/conf/upstream
   else
     echo "Error: /opt/osp Does not Exist"
   fi
@@ -400,16 +400,16 @@ upgrade_osp() {
 upgrade_rtmp() {
   sudo git pull
   sudo pip3 install -r $DIR/installs/osp-rtmp/setup/requirements.txt
-  sudo cp $DIR/installs/osp-rtmp/setup/nginx/servers/*.conf /usr/local/nginx/conf/servers
-  sudo cp $DIR/installs/osp-rtmp/setup/nginx/services/*.conf /usr/local/nginx/conf/services
+  sudo cp -rf $DIR/installs/osp-rtmp/setup/nginx/servers/*.conf /usr/local/nginx/conf/servers
+  sudo cp -rf $DIR/installs/osp-rtmp/setup/nginx/services/*.conf /usr/local/nginx/conf/services
   sudo cp -R $DIR/installs/osp-rtmp/* /opt/osp-rtmp
-  sudo cp -R $DIR/classes/*.py /opt/osp-rtmp/classes
+  sudo cp -rf $DIR/classes/*.py /opt/osp-rtmp/classes
 }
 
 upgrade_ejabberd() {
   sudo git pull
-  sudo cp $DIR/installs/ejabberd/setup/auth_osp.py /usr/local/ejabberd/conf/auth_osp.py
-  sudo cp $DIR/installs/ejabberd/setup/nginx/locations/ejabberd.conf /usr/local/nginx/conf/locations/
+  sudo cp -rf $DIR/installs/ejabberd/setup/auth_osp.py /usr/local/ejabberd/conf/auth_osp.py
+  sudo cp -rf $DIR/installs/ejabberd/setup/nginx/locations/ejabberd.conf /usr/local/nginx/conf/locations/
 }
 
 ##########################################################
