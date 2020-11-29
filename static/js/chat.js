@@ -278,6 +278,11 @@ function onMessage(msg) {
   var type = msg.getAttribute('type');
   var messageElement = msg.getElementsByTagName('body');
   var timestampElement = msg.getElementsByTagName('delay');
+
+  if (from == null) {
+      from = "SERVER";
+  }
+
   if  (!(CHATSTATUS.muteList.includes(Strophe.getResourceFromJid(from)))) {
 
       if (timestampElement[0] != undefined) {
