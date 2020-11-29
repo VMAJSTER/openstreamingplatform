@@ -64,11 +64,10 @@ def user_page():
                     for f in filenames:
                         fp = os.path.join(dirpath, f)
                         total_size += os.path.getsize(fp)
-                totalSpaceUsed = totalSpaceUsed + total_size
             except FileNotFoundError:
-                diskUsage = 0
+                total_size = 0
             channelUsage.append({'name': chan.channelName, 'usage': total_size})
-            totalSpaceUsed = totalSpaceUsed + diskUsage
+            totalSpaceUsed = totalSpaceUsed + total_size
 
         return render_template(themes.checkOverride('userSettings.html'), totalSpaceUsed=totalSpaceUsed, channelUsage=channelUsage)
 
