@@ -42,9 +42,6 @@
                 <li class="nav-item">
                     <a class="nav-link {% if page == 'streams' %} active {% endif %}" role="tab" id="admin-nav-streams" href="#streamsList" data-toggle="pill" aria-controls="admin-nav-streams" aria-selected="false">Streams</a>
                 </li>
-                {# <li class="nav-item">
-                    <a class="nav-link {% if page == 'hub' %} active {% endif %}" role="tab" id="admin-nav-hub" href="#hubSettings" data-toggle="pill" aria-controls="admin-nav-hub" aria-selected="false">Hub</a>
-                </li> #}
                 <li class="nav-item">
                     <a class="nav-link {% if page == 'logs' %} active {% endif %}" role="tab" id="admin-nav-logs" href="#logs" data-toggle="pill" aria-controls="admin-nav-logs" aria-selected="false">Logs</a>
                 </li>
@@ -973,7 +970,7 @@
                                   <td><a href="/topic/{{channel.topic}}/">{{channel.topic|get_topicName}}</a></td>
                                   <td>{{channel.channelLoc}}</td>
                                   <td>{{channel.views}}</td>
-                                  <td>{{channel.channelLoc|get_diskUsage}}</td>
+                                  <td>{{channel.channelLoc|get_diskUsage|formatSpace}}</td>
                                   <td><span class="badge {% if channel.chatEnabled == True %} badge-success {% elif channel.chatEnabled == False %} badge-danger {% endif %}"> {{channel.chatEnabled}} </span></td>
                                   <td><span class="badge {% if channel.record == True %} badge-success {% elif channel.record == False %} badge-danger {% endif %}"> {{channel.record}}</span></td>
                                   <td><span class="badge {% if channel.allowComments == True %} badge-success {% elif channel.allowComments == False %} badge-danger {% endif %}"> {{channel.allowComments}}</span></td>

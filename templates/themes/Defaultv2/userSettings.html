@@ -93,12 +93,12 @@
                                                 {% for chan in channelUsage %}
                                                 <tr>
                                                     <td>{{ chan['name'] }}</td>
-                                                    <td>{{ chan['usage'] }} MB</td>
+                                                    <td>{{ chan['usage'] | formatSpace }}</td>
                                                 </tr>
                                                 {% endfor %}
                                                 <tr>
                                                     <td></td>
-                                                    <td>{{ totalSpaceUsed }} MB</td>
+                                                    <td>{{ totalSpaceUsed | formatSpace }}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
