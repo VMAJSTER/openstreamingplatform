@@ -71,7 +71,7 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <b>Storage Usage</b>
+                                <b>Storage Usage</b><br>
                                 <div class="row">
                                     <table class="table">
                                         <thead>
@@ -84,12 +84,12 @@
                                             {% for chan in channelUsage %}
                                             <tr>
                                                 <td>{{ chan['name'] }}</td>
-                                                <td>{{ chan['usage'] }}</td>
+                                                <td>{{ chan['usage'] }} MB</td>
                                             </tr>
                                             {% endfor %}
                                             <tr>
                                                 <td></td>
-                                                <td>{{ totalSpaceUsed }}</td>
+                                                <td>{{ totalSpaceUsed }} MB</td>
                                             </tr>
                                         </tbody>
                                     </table>
