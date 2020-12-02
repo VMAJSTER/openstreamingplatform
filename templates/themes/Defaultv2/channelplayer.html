@@ -798,6 +798,7 @@
     </script>
 
     <script>
+
         function getBanList() {
             console.log("Requesting Ban List");
             socket.emit('getBanList', {channelLoc: '{{channel.channelLoc}}'});
@@ -810,6 +811,16 @@
             }, 2000);
             return true;
         }
+
+        function banUserNotify(username, channelLoc) {
+            socket.emit('banUser',{JID:username, channelLoc: channelLoc});
+        }
+
+        socket.on('broadcastBan', function(msg) {
+            var user = msg['username'];
+            console.log(user + ' has been banned from the channel.');
+
+        });
 
         socket.on('returnBanList', function(msg) {
             console.log("Receiving Ban List");

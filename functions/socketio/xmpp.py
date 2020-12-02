@@ -7,6 +7,30 @@ from classes import Channel
 from classes import Sec
 from classes import settings
 
+@socketio.on('banUserNotify')
+def banUser(message):
+    sysSettings = settings.settings.query.first()
+    if '@' in str(message['JID']):
+        JID = str(message['JID'])
+    else:
+        username = str(message['JID'])
+        userQuery = Sec.User.query.filter(func.lower(Sec.User.username) == func.lower(username)).first()
+        if userQuery is not None:
+            JID = username + '@' + sysSettings.siteAddress
+
+    channelLoc = str(message['channelLoc'])
+
+    # Needs to be changed to account for Mods as well
+    channelQuery = Channel.Channel.query.filter_by(channelLoc=channelLoc, owningUser=current_user.id).first()
+
+    # Send Acknowledgement to Update Clients
+    if channelQuery is not None:
+        emit('broadcastBan', {'username': JID },room=channelLoc)
+
+    db.session.commit()
+    db.session.close()
+    return 'OK'
+
 @socketio.on('addMod')
 def addMod(message):
     sysSettings = settings.settings.query.first()
