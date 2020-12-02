@@ -441,7 +441,6 @@ function exitRoom(room) {
 // Mod Controls
 function ban(username) {
     connection.muc.rooms[ROOMNAME + '@' + ROOM_SERVICE].roster[username].ban();
-    banUserNotify();
     return true;
 }
 
