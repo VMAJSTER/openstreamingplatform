@@ -53,8 +53,6 @@ def streamkey_check():
                 returnMessage = {'time': str(currentTime), 'status': 'Successful Key Auth', 'key': str(key), 'channelName': str(channelRequest.channelName), 'userName': str(channelRequest.owningUser), 'ipAddress': str(ipaddress)}
                 print(returnMessage)
 
-                #validAddress = system.formatSiteAddress(sysSettings.siteAddress)
-
                 existingStreamQuery = Stream.Stream.query.filter_by(linkedChannel=channelRequest.id).all()
                 if existingStreamQuery:
                     for stream in existingStreamQuery:
