@@ -78,6 +78,7 @@ class settings(db.Model):
             'restreamMaxBitRate': self.restreamMaxBitrate,
             'maxClipLength': self.maxClipLength,
             'protectionEnabled': self.protectionEnabled,
+            'adaptiveStreaming': self.adaptiveStreaming,
             'maintenanceMode': self.maintenanceMode
         }
 
