@@ -91,7 +91,7 @@ def user_auth_check():
 
                         p = subprocess.Popen(subprocessConstructor, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                         globalvars.edgeRestreamSubprocesses[channelLocation].append(p)
-                        return 'OK'
+                return 'OK'
             else:
                 return abort(400)
         else:
