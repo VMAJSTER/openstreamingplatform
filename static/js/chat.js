@@ -421,7 +421,6 @@ function parseOccupants(resp) {
   for (let i = 0; i < chatMembersArray['moderator'].length; i++) {
       var userEntry = document.createElement('div');
       userEntry.className = "member my-1";
-      //userEntry.innerHTML = '<img class="rounded shadow" src="https://picsum.photos/48"> ' + '<span>' + chatMembersArray['owner'][i]['username'] + '</span>';
       userEntry.innerHTML = '<span class="user"><a href="javascript:void(0);" onclick="displayProfileBox(this)">' + chatMembersArray['moderator'][i]['username'] + '</a></span>';
       document.getElementById('ModeratorList').appendChild(userEntry)
   }
@@ -431,7 +430,6 @@ function parseOccupants(resp) {
   for (let i = 0; i < chatMembersArray['participant'].length; i++) {
       var userEntry = document.createElement('div');
       userEntry.className = "member my-1";
-      //userEntry.innerHTML = '<img class="rounded shadow" src="https://picsum.photos/48"> ' + '<span>' + chatMembersArray['participant'][i]['username'] + '</span>';
       userEntry.innerHTML = '<span class="user"><a href="javascript:void(0);" onclick="displayProfileBox(this)">' + chatMembersArray['participant'][i]['username'] + '</a></span>';
       document.getElementById('ParticipantList').appendChild(userEntry)
   }
@@ -439,10 +437,8 @@ function parseOccupants(resp) {
   // Visitor
   document.getElementById('VisitorList').innerHTML="";
   for (let i = 0; i < chatMembersArray['visitor'].length; i++) {
-      //document.getElementById('chatMembers').append(chatMembersArray['none'][i]['username']);
       var userEntry = document.createElement('div');
       userEntry.className = "member my-1";
-      //userEntry.innerHTML = '<img class="rounded shadow" src="https://picsum.photos/48"> ' + '<span>' + chatMembersArray['visitor'][i]['username'] + '</span>';
       userEntry.innerHTML = '<span class="user"><a href="javascript:void(0);" onclick="displayProfileBox(this)">' + chatMembersArray['visitor'][i]['username'] + '</a></span>';
       document.getElementById('VisitorList').appendChild(userEntry)
   }
@@ -471,6 +467,10 @@ function addUser(username, affiliation, role) {
 function exitRoom(room) {
   console.log("Left Room: " + room);
   connection.muc.leave(room, username + '@' + server, null, null);
+}
+
+function hideUserMessages(nickname) {
+    $("div > .chatUsername:contains(nickname)").parent().parent().parent().parent().hide();
 }
 
 // Mod Controls
