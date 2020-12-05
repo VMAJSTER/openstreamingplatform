@@ -47,8 +47,11 @@ def user_auth_check():
             channelLocation = stage2Reponse['results']['channelLoc']
             inputLocation = "rtmp://127.0.0.1:1935/live/" + channelLocation
 
+            print("Stage2 Validated")
             # Validate OSP's System Settings
+            print("Getting SysSettings")
             sysSettingsRequest = requests.get(globalvars.apiLocation + "/apiv1/server")
+            print("Received Request")
             if sysSettingsRequest.status_code == '200':
                 sysSettingsResults = sysSettingsRequest.json()
                 print("Got SysSettings")
