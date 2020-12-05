@@ -5,6 +5,12 @@ Enabled SECURITY_TRACKABLE to allow for future IP Address filtering
 Added Google ReCaptcha to Registration as an option for Reducing Spam Bots from Registering Users
 ejabberd Usernames are now tracked by User UUID to prevent issues where a username may contain invalid characters.  User UUIDs can be found in the user settings screen
 Fixed an issue where Users created in the Admin Console did not have XMPP Tokens or UUIDs
+Changed Formatting of User Settings Page
+Added Storage Usage to User Settings Pages
+Removed userSettings.html from Dark Cow
+Moved RTMP Authentication Checks to Separate Function
+Added APIv1 Endpoint for RTMP Authentication Checks and Processing
+
 
 0.7.9
 ==============================================

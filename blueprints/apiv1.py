@@ -7,6 +7,7 @@ from flask_restplus import Api, Resource, reqparse
 
 import shutil
 import uuid
+import datetime
 
 from classes import Sec
 from classes import Channel
@@ -18,6 +19,8 @@ from classes import apikey
 from classes import views
 from classes import settings
 from classes.shared import db
+
+from functions import rtmpFunc
 
 from globals import globalvars
 
@@ -77,6 +80,26 @@ xmppAuthParserPost.add_argument('token', type=str)
 
 xmppIsUserParserPost = reqparse.RequestParser()
 xmppIsUserParserPost.add_argument('jid', type=str)
+
+rtmpStage1Auth = reqparse.RequestParser()
+rtmpStage1Auth.add_argument('name', type=str)
+rtmpStage1Auth.add_argument('addr', type=str)
+
+rtmpStage2Auth = reqparse.RequestParser()
+rtmpStage2Auth.add_argument('name', type=str)
+rtmpStage2Auth.add_argument('addr', type=str)
+
+rtmpRecCheck = reqparse.RequestParser()
+rtmpRecCheck.add_argument('name', type=str)
+
+rtmpStreamClose = reqparse.RequestParser()
+rtmpStreamClose.add_argument('name', type=str)
+rtmpStreamClose.add_argument('addr', type=str)
+
+rtmpRecClose = reqparse.RequestParser()
+rtmpRecClose.add_argument('name', type=str)
+rtmpRecClose.add_argument('path', type=str)
+
 # TODO Add Clip Post Arguments
 
 @api.route('/server')
@@ -543,3 +566,112 @@ class api_1_xmppisuser(Resource):
                 if userQuery != None:
                     return {'results': {'message': 'Successful Authentication', 'code': 200}}, 200
         return {'results': {'message': 'Request Error', 'code':400}}, 400
+
+@api.route('/rtmp/stage1')
+@api.doc(params={'name': 'Stream Key of Channel', 'addr':'IP Address of Endpoint Making Request'})
+class api_1_rtmp_stage1(Resource):
+    @api.expect(rtmpStage1Auth)
+    @api.doc(responses={200: 'Success', 400: 'Request Error'})
+    def post(self):
+        """
+        Initialize Stage 1 of RTMP Authentication
+        """
+        args = rtmpStage1Auth.parse_args()
+
+        if 'name' in args and 'addr' in args:
+            name = args['name']
+            addr = args['addr']
+            results = rtmpFunc.rtmp_stage1_streamkey_check(name, addr)
+            if results['success'] is True:
+                return {'results': results}, 200
+            else:
+                return {'results': results}, 400
+        else:
+            return {'results': {'time': str(datetime.datetime.now()), 'request': 'Stage1', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
+
+@api.route('/rtmp/stage2')
+@api.doc(params={'name': 'Channel Location of Channel Processed Under Stage 1', 'addr':'IP Address of Endpoint Making Request'})
+class api_1_rtmp_stage2(Resource):
+    @api.expect(rtmpStage2Auth)
+    @api.doc(responses={200: 'Success', 400: 'Request Error'})
+    def post(self):
+        """
+        Initialize Stage 2 of RTMP Authentication
+        """
+        args = rtmpStage2Auth.parse_args()
+
+        if 'name' in args and 'addr' in args:
+            name = args['name']
+            addr = args['addr']
+            results = rtmpFunc.rtmp_stage2_user_auth_check(name, addr)
+            if results['success'] is True:
+                return {'results': results}, 200
+            else:
+                return {'results': results}, 400
+        else:
+            return {'results': {'time': str(datetime.datetime.now()), 'request': 'Stage2', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
+
+@api.route('/rtmp/reccheck')
+@api.doc(params={'name': 'Stream Key of Channel'})
+class api_1_rtmp_reccheck(Resource):
+    @api.expect(rtmpRecCheck)
+    @api.doc(responses={200: 'Success', 400: 'Request Error'})
+    def post(self):
+        """
+        Initialize Recording Check for RTMP
+        """
+        args = rtmpRecCheck.parse_args()
+
+        if 'name' in args:
+            name = args['name']
+            results = rtmpFunc.rtmp_record_auth_check(name)
+            if results['success'] is True:
+                return {'results': results}, 200
+            else:
+                return {'results': results}, 400
+        else:
+            return {'results': {'time': str(datetime.datetime.now()), 'request': 'RecordCheck', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
+
+@api.route('/rtmp/streamclose')
+@api.doc(params={'name': 'Stream Key of Channel', 'addr':'IP Address of Endpoint Making Request'})
+class api_1_rtmp_streamclose(Resource):
+    @api.expect(rtmpStreamClose)
+    @api.doc(responses={200: 'Success', 400: 'Request Error'})
+    def post(self):
+        """
+        Close an Open Stream
+        """
+        args = rtmpStreamClose.parse_args()
+
+        if 'name' in args and 'addr' in args:
+            name = args['name']
+            addr = args['addr']
+            results = rtmpFunc.rtmp_user_deauth_check(name, addr)
+            if results['success'] is True:
+                return {'results': results}, 200
+            else:
+                return {'results': results}, 400
+        else:
+            return {'results': {'time': str(datetime.datetime.now()), 'request': 'StreamClose', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
+
+@api.route('/rtmp/recclose')
+@api.doc(params={'name': 'Channel Location of Video to Close', 'path':'Nginx-rtmp Full Path of Preprocessed Video'})
+class api_1_rtmp_recclose(Resource):
+    @api.expect(rtmpRecClose)
+    @api.doc(responses={200: 'Success', 400: 'Request Error'})
+    def post(self):
+        """
+        Finalize Processing of a Recorded Video
+        """
+        args = rtmpRecClose.parse_args()
+
+        if 'name' in args and 'path' in args:
+            name = args['name']
+            path = args['path']
+            results = rtmpFunc.rtmp_rec_Complete_handler(name, path)
+            if results['success'] is True:
+                return {'results': results}, 200
+            else:
+                return {'results': results}, 400
+        else:
+            return {'results': {'time': str(datetime.datetime.now()), 'request': 'RecordingClose', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
