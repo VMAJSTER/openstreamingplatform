@@ -240,6 +240,26 @@ class api_1_ListChannel(Resource):
                         return {'results': {'message': 'Channel Deleted'}}, 200
         return {'results': {'message': 'Request Error'}}, 400
 
+# TODO Add Authentication
+# TODO Add Ability to Add/Delete/Change
+@api.route('/channel/<string:channelEndpointID>/restreams')
+@api.doc(params={'channelEndpointID': 'GUID Channel Location'})
+class api_1_GetRestreams(Resource):
+    def get(self, channelEndpointID):
+        """
+             Returns all restream destinations for a channel
+        """
+        channelData = Channel.Channel.query.filter_by(channelLoc=channelEndpointID).first()
+
+        if channelData is not None:
+            restreamDestinations = channelData.restreamDestinations
+            db.session.commit()
+            return {'results': [ob.serialize() for ob in restreamDestinations]}
+
+        else:
+            db.session.commit()
+            return {'results': {'message': 'Request Error'}}, 400
+
 @api.route('/channel/authed/')
 class api_1_ListChannelAuthed(Resource):
     # Channel - Get Authenticated View of a Single Channel
@@ -567,6 +587,7 @@ class api_1_xmppisuser(Resource):
                     return {'results': {'message': 'Successful Authentication', 'code': 200}}, 200
         return {'results': {'message': 'Request Error', 'code':400}}, 400
 
+# TODO Add Authentication
 @api.route('/rtmp/stage1')
 @api.doc(params={'name': 'Stream Key of Channel', 'addr':'IP Address of Endpoint Making Request'})
 class api_1_rtmp_stage1(Resource):
@@ -589,6 +610,7 @@ class api_1_rtmp_stage1(Resource):
         else:
             return {'results': {'time': str(datetime.datetime.now()), 'request': 'Stage1', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
 
+# TODO Add Authentication
 @api.route('/rtmp/stage2')
 @api.doc(params={'name': 'Channel Location of Channel Processed Under Stage 1', 'addr':'IP Address of Endpoint Making Request'})
 class api_1_rtmp_stage2(Resource):
@@ -611,6 +633,7 @@ class api_1_rtmp_stage2(Resource):
         else:
             return {'results': {'time': str(datetime.datetime.now()), 'request': 'Stage2', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
 
+# TODO Add Authentication
 @api.route('/rtmp/reccheck')
 @api.doc(params={'name': 'Stream Key of Channel'})
 class api_1_rtmp_reccheck(Resource):
@@ -632,6 +655,7 @@ class api_1_rtmp_reccheck(Resource):
         else:
             return {'results': {'time': str(datetime.datetime.now()), 'request': 'RecordCheck', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
 
+# TODO Add Authentication
 @api.route('/rtmp/streamclose')
 @api.doc(params={'name': 'Stream Key of Channel', 'addr':'IP Address of Endpoint Making Request'})
 class api_1_rtmp_streamclose(Resource):
@@ -654,6 +678,7 @@ class api_1_rtmp_streamclose(Resource):
         else:
             return {'results': {'time': str(datetime.datetime.now()), 'request': 'StreamClose', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
 
+# TODO Add Authentication
 @api.route('/rtmp/recclose')
 @api.doc(params={'name': 'Channel Location of Video to Close', 'path':'Nginx-rtmp Full Path of Preprocessed Video'})
 class api_1_rtmp_recclose(Resource):
