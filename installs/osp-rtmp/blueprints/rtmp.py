@@ -54,43 +54,45 @@ def user_auth_check():
             else:
                 abort(400)
 
-            # Request a list of the Restream Destinations for a Channel via APIv1
-            restreamDataRequest = requests.get(globalvars.apiLocation + "/apiv1/channel/" + channelLocation + "/restreams")
-            if restreamDataRequest.status_code == '200':
-                restreamDataResults = restreamDataRequest.json()
-                globalvars.restreamSubprocesses[channelLocation] = []
+            test=True
+            if test != True:
+                # Request a list of the Restream Destinations for a Channel via APIv1
+                restreamDataRequest = requests.get(globalvars.apiLocation + "/apiv1/channel/" + channelLocation + "/restreams")
+                if restreamDataRequest.status_code == '200':
+                    restreamDataResults = restreamDataRequest.json()
+                    globalvars.restreamSubprocesses[channelLocation] = []
 
-                # Iterate Over Restream Destinations and Create ffmpeg Subprocess to Handle
-                for destination in restreamDataResults['results']:
-                    if destination['enabled'] is True:
-                        p = subprocess.Popen(
-                            ["ffmpeg", "-i", inputLocation, "-c", "copy", "-f", "flv", destination['url'], "-c:v",
-                             "libx264", "-maxrate", str(sysSettingsResults['results']['restreamMaxBitRate']) + "k", "-bufsize",
-                             "6000k", "-c:a", "aac", "-b:a", "160k", "-ac", "2"], stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL)
-                        globalvars.restreamSubprocesses[channelLocation].append(p)
+                    # Iterate Over Restream Destinations and Create ffmpeg Subprocess to Handle
+                    for destination in restreamDataResults['results']:
+                        if destination['enabled'] is True:
+                            p = subprocess.Popen(
+                                ["ffmpeg", "-i", inputLocation, "-c", "copy", "-f", "flv", destination['url'], "-c:v",
+                                 "libx264", "-maxrate", str(sysSettingsResults['results']['restreamMaxBitRate']) + "k", "-bufsize",
+                                 "6000k", "-c:a", "aac", "-b:a", "160k", "-ac", "2"], stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL)
+                            globalvars.restreamSubprocesses[channelLocation].append(p)
 
-            # Request List of OSP Edge Servers to Send a Restream To
-            edgeNodeDataRequest = requests.get(globalvars.apiLocation + "/apiv1/server/edges")
-            if edgeNodeDataRequest.status_code == '200':
-                edgeNodeDataResults = edgeNodeDataRequest.json()
-                globalvars.edgeRestreamSubprocesses[channelLocation] = []
+                # Request List of OSP Edge Servers to Send a Restream To
+                edgeNodeDataRequest = requests.get(globalvars.apiLocation + "/apiv1/server/edges")
+                if edgeNodeDataRequest.status_code == '200':
+                    edgeNodeDataResults = edgeNodeDataRequest.json()
+                    globalvars.edgeRestreamSubprocesses[channelLocation] = []
 
-                # Iterate Over Edge Node Results and Create ffmpeg Subprocess to Handle
-                for node in edgeNodeDataResults['results']:
-                    if node['active'] is True and node['address'] != sysSettingsResults['siteAddress']:
-                        subprocessConstructor = ["ffmpeg", "-i", inputLocation, "-c", "copy"]
-                        subprocessConstructor.append("-f")
-                        subprocessConstructor.append("flv")
+                    # Iterate Over Edge Node Results and Create ffmpeg Subprocess to Handle
+                    for node in edgeNodeDataResults['results']:
+                        if node['active'] is True and node['address'] != sysSettingsResults['siteAddress']:
+                            subprocessConstructor = ["ffmpeg", "-i", inputLocation, "-c", "copy"]
+                            subprocessConstructor.append("-f")
+                            subprocessConstructor.append("flv")
 
-                        # Sets Destination Endpoint based on System Adaptive Streaming Results
-                        if sysSettingsResults['adaptiveStreaming'] is True:
-                            subprocessConstructor.append("rtmp://" + node.address + "/stream-data-adapt/" + channelLocation)
-                        else:
-                            subprocessConstructor.append("rtmp://" + node.address + "/stream-data/" + channelLocation)
+                            # Sets Destination Endpoint based on System Adaptive Streaming Results
+                            if sysSettingsResults['adaptiveStreaming'] is True:
+                                subprocessConstructor.append("rtmp://" + node.address + "/stream-data-adapt/" + channelLocation)
+                            else:
+                                subprocessConstructor.append("rtmp://" + node.address + "/stream-data/" + channelLocation)
 
-                        p = subprocess.Popen(subprocessConstructor, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                        globalvars.edgeRestreamSubprocesses[channelLocation].append(p)
+                            p = subprocess.Popen(subprocessConstructor, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            globalvars.edgeRestreamSubprocesses[channelLocation].append(p)
                 return 'OK'
             else:
                 return abort(400)
