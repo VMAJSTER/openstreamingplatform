@@ -1,255 +1,147 @@
-import os
-import time
-import hashlib
-import datetime
-import socket
 import subprocess
+import requests
 
 from flask import Blueprint, request, redirect, current_app, abort
 
-from classes.shared import db
-from classes import Sec
-from classes import RecordedVideo
-from classes import subscriptions
-from classes import notifications
-from classes import Channel
-from classes import Stream
-from classes import settings
-from classes import upvotes
-
-from functions import webhookFunc
-from functions import system
-from functions import templateFilters
-from functions import subsFunc
-from functions import videoFunc
-from functions import xmpp
-
-from globals import globalvars
-from app import coreNginxRTMPAddress
+from globals.globalvars import apiLocation
 
 rtmp_bp = Blueprint('rtmp', __name__)
 
 @rtmp_bp.route('/auth-key', methods=['POST'])
 def streamkey_check():
-    sysSettings = settings.settings.query.first()
 
     key = request.form['name']
     ipaddress = request.form['addr']
 
-    channelRequest = Channel.Channel.query.filter_by(streamKey=key).first()
+    # Execute Stage 1 RTMP Authentication
+    stage1Request = requests.post(apiLocation + "/apiv1/rtmp/stage1", data={'name':key, 'addr': ipaddress})
+    if stage1Request.status_code == '200':
+        stage1Reponse = stage1Request.json()
+        if stage1Reponse['results']['success'] is True:
+            channelLocation = stage1Reponse['results']['channelLoc']
 
-    currentTime = datetime.datetime.now()
-
-    if channelRequest is not None:
-        userQuery = Sec.User.query.filter_by(id=channelRequest.owningUser).first()
-        if userQuery is not None:
-            if userQuery.has_role('Streamer'):
-
-                if not userQuery.active:
-                    returnMessage = {'time': str(currentTime), 'status': 'Unauthorized User - User has been Disabled', 'key': str(key), 'ipAddress': str(ipaddress)}
-                    print(returnMessage)
-                    return abort(400)
-
-                returnMessage = {'time': str(currentTime), 'status': 'Successful Key Auth', 'key': str(key), 'channelName': str(channelRequest.channelName), 'userName': str(channelRequest.owningUser), 'ipAddress': str(ipaddress)}
-                print(returnMessage)
-
-                existingStreamQuery = Stream.Stream.query.filter_by(linkedChannel=channelRequest.id).all()
-                if existingStreamQuery:
-                    for stream in existingStreamQuery:
-                        db.session.delete(stream)
-                    db.session.commit()
-
-                defaultStreamName = templateFilters.normalize_date(str(currentTime))
-                if channelRequest.defaultStreamName != "":
-                    defaultStreamName = channelRequest.defaultStreamName
-
-                newStream = Stream.Stream(key, defaultStreamName, int(channelRequest.id), channelRequest.topic)
-                db.session.add(newStream)
-                db.session.commit()
-
-                if sysSettings.adaptiveStreaming:
-                    return redirect('rtmp://' + coreNginxRTMPAddress + '/stream-data-adapt/' + channelRequest.channelLoc, code=302)
-                else:
-                    return redirect('rtmp://' + coreNginxRTMPAddress + '/stream-data/' + channelRequest.channelLoc, code=302)
-
+            # Redirect based on API Response of Stream Type and Expected Stage 2 Handoff
+            if stage1Reponse['results']['type'] == 'adaptive':
+                return redirect('rtmp://127.0.0.1/stream-data-adapt/' + channelLocation, code=302)
             else:
-                returnMessage = {'time': str(currentTime), 'status': 'Unauthorized User - Missing Streamer Role', 'key': str(key), 'ipAddress': str(ipaddress)}
-                print(returnMessage)
-                db.session.close()
-                return abort(400)
+                return redirect('rtmp://127.0.0.1/stream-data/' + channelLocation, code=302)
         else:
-            returnMessage = {'time': str(currentTime), 'status': 'Unauthorized User - No Such User', 'key': str(key), 'ipAddress': str(ipaddress)}
+            returnMessage = stage1Reponse
             print(returnMessage)
-            db.session.close()
             return abort(400)
     else:
-        returnMessage = {'time': str(currentTime), 'status': 'Failed Key Auth', 'key':str(key), 'ipAddress': str(ipaddress)}
-        print(returnMessage)
-        db.session.close()
         return abort(400)
+
 
 @rtmp_bp.route('/auth-user', methods=['POST'])
 def user_auth_check():
-    sysSettings = settings.settings.query.first()
-
     key = request.form['name']
     ipaddress = request.form['addr']
 
-    requestedChannel = Channel.Channel.query.filter_by(channelLoc=key).first()
+    # Execute Stage 2 RTMP Authentication
+    stage2Request = requests.post(apiLocation + "/apiv1/rtmp/stage2", data={'name': key, 'addr': ipaddress})
+    if stage2Request.status_code == '200':
+        stage2Reponse = stage2Request.json()
+        if stage2Reponse['results']['success'] is True:
 
-    if requestedChannel is not None:
-        authedStream = Stream.Stream.query.filter_by(streamKey=requestedChannel.streamKey).first()
+            channelLocation = stage2Reponse['results']['channelLoc']
+            inputLocation = "rtmp://127.0.0.1:1935/live/" + channelLocation
 
-        if authedStream is not None:
-
-            authedStream.currentViewers = int(xmpp.getChannelCounts(requestedChannel.channelLoc))
-            authedStream.totalViewers = int(xmpp.getChannelCounts(requestedChannel.channelLoc))
-            db.session.commit()
-
-            returnMessage = {'time': str(datetime.datetime.now()), 'status': 'Successful Channel Auth', 'key': str(requestedChannel.streamKey), 'channelName': str(requestedChannel.channelName), 'ipAddress': str(ipaddress)}
-            print(returnMessage)
-
-            if requestedChannel.imageLocation is None:
-                channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/static/img/video-placeholder.jpg")
+            # Validate OSP's System Settings
+            sysSettingsRequest = requests.get(apiLocation + "/apiv1/server")
+            if sysSettingsRequest.status_code == '200':
+                sysSettingsResults = sysSettingsRequest.json()
             else:
-                channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/images/" + requestedChannel.imageLocation)
+                abort(400)
 
-            webhookFunc.runWebhook(requestedChannel.id, 0, channelname=requestedChannel.channelName, channelurl=(sysSettings.siteProtocol + sysSettings.siteAddress + "/channel/" + str(requestedChannel.id)), channeltopic=requestedChannel.topic,
-                       channelimage=channelImage, streamer=templateFilters.get_userName(requestedChannel.owningUser), channeldescription=str(requestedChannel.description),
-                       streamname=authedStream.streamName, streamurl=(sysSettings.siteProtocol + sysSettings.siteAddress + "/view/" + requestedChannel.channelLoc), streamtopic=templateFilters.get_topicName(authedStream.topic),
-                       streamimage=(sysSettings.siteProtocol + sysSettings.siteAddress + "/stream-thumb/" + requestedChannel.channelLoc + ".png"))
+            # Request a list of the Restream Destinations for a Channel via APIv1
+            restreamDataRequest = requests.get(apiLocation + "/apiv1/channel/" + channelLocation + "/restreams")
+            if restreamDataRequest.status_code == '200':
+                restreamDataResults = restreamDataRequest.json()
+                globalvars.restreamSubprocesses[channelLocation] = []
 
-            subscriptionQuery = subscriptions.channelSubs.query.filter_by(channelID=requestedChannel.id).all()
-            for sub in subscriptionQuery:
-                # Create Notification for Channel Subs
-                newNotification = notifications.userNotification(templateFilters.get_userName(requestedChannel.owningUser) + " has started a live stream in " + requestedChannel.channelName, "/view/" + str(requestedChannel.channelLoc),
-                                                                 "/images/" + str(requestedChannel.owner.pictureLocation), sub.userID)
-                db.session.add(newNotification)
-            db.session.commit()
+                # Iterate Over Restream Destinations and Create ffmpeg Subprocess to Handle
+                for destination in restreamDataResults['results']:
+                    if destination['enabled'] is True:
+                        p = subprocess.Popen(
+                            ["ffmpeg", "-i", inputLocation, "-c", "copy", "-f", "flv", destination['url'], "-c:v",
+                             "libx264", "-maxrate", str(sysSettingsResults['results']['restreamMaxBitRate']) + "k", "-bufsize",
+                             "6000k", "-c:a", "aac", "-b:a", "160k", "-ac", "2"], stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL)
+                        globalvars.restreamSubprocesses[channelLocation].append(p)
 
-            try:
-                subsFunc.processSubscriptions(requestedChannel.id,
-                                 sysSettings.siteName + " - " + requestedChannel.channelName + " has started a stream",
-                                 "<html><body><img src='" + sysSettings.siteProtocol + sysSettings.siteAddress + sysSettings.systemLogo + "'><p>Channel " + requestedChannel.channelName +
-                                 " has started a new video stream.</p><p>Click this link to watch<br><a href='" + sysSettings.siteProtocol + sysSettings.siteAddress + "/view/" + str(requestedChannel.channelLoc)
-                                 + "'>" + requestedChannel.channelName + "</a></p>")
-            except:
-                system.newLog(0, "Subscriptions Failed due to possible misconfiguration")
+            # Request List of OSP Edge Servers to Send a Restream To
+            edgeNodeDataRequest = requests.get(apiLocation + "/apiv1/server/edges")
+            if edgeNodeDataRequest.status_code == '200':
+                edgeNodeDataResults = edgeNodeDataRequest.json()
+                globalvars.edgeRestreamSubprocesses[channelLocation] = []
 
-            inputLocation = "rtmp://" + coreNginxRTMPAddress + ":1935/live/" + requestedChannel.channelLoc
-
-            # Begin RTMP Restream Function
-            if requestedChannel.restreamDestinations != []:
-                globalvars.restreamSubprocesses[requestedChannel.channelLoc] = []
-                for rtmpRestream in requestedChannel.restreamDestinations:
-                    if rtmpRestream.enabled == True:
-                        p = subprocess.Popen(["ffmpeg", "-i", inputLocation, "-c", "copy", "-f", "flv", rtmpRestream.url, "-c:v", "libx264", "-maxrate", str(sysSettings.restreamMaxBitrate) + "k", "-bufsize", "6000k", "-c:a", "aac", "-b:a", "160k", "-ac", "2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                        globalvars.restreamSubprocesses[requestedChannel.channelLoc].append(p)
-
-            # Start OSP Edge Nodes
-            ospEdgeNodeQuery = settings.edgeStreamer.query.filter_by(active=True).all()
-            if ospEdgeNodeQuery is not []:
-                globalvars.edgeRestreamSubprocesses[requestedChannel.channelLoc] = []
-
-                for node in ospEdgeNodeQuery:
-                    if node.address != sysSettings.siteAddress:
+                # Iterate Over Edge Node Results and Create ffmpeg Subprocess to Handle
+                for node in edgeNodeDataResults['results']:
+                    if node['active'] is True and node['address'] != sysSettingsResults['siteAddress']:
                         subprocessConstructor = ["ffmpeg", "-i", inputLocation, "-c", "copy"]
                         subprocessConstructor.append("-f")
                         subprocessConstructor.append("flv")
-                        if sysSettings.adaptiveStreaming:
-                            subprocessConstructor.append("rtmp://" + node.address + "/stream-data-adapt/" + requestedChannel.channelLoc)
+
+                        # Sets Destination Endpoint based on System Adaptive Streaming Results
+                        if sysSettingsResults['adaptiveStreaming'] is True:
+                            subprocessConstructor.append("rtmp://" + node.address + "/stream-data-adapt/" + channelLocation)
                         else:
-                            subprocessConstructor.append("rtmp://" + node.address + "/stream-data/" + requestedChannel.channelLoc)
+                            subprocessConstructor.append("rtmp://" + node.address + "/stream-data/" + channelLocation)
 
                         p = subprocess.Popen(subprocessConstructor, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                        globalvars.edgeRestreamSubprocesses[requestedChannel.channelLoc].append(p)
-
-            db.session.close()
-            return 'OK'
+                        globalvars.edgeRestreamSubprocesses[channelLocation].append(p)
+                        return 'OK'
+            else:
+                return abort(400)
         else:
-            returnMessage = {'time': str(datetime.datetime.now()), 'status': 'Failed Channel Auth. No Authorized Stream Key', 'channelName': str(key), 'ipAddress': str(ipaddress)}
-            print(returnMessage)
-            db.session.close()
             return abort(400)
     else:
-        returnMessage = {'time': str(datetime.datetime.now()), 'status': 'Failed Channel Auth. Channel Loc does not match Channel', 'channelName': str(key), 'ipAddress': str(ipaddress)}
-        print(returnMessage)
-        db.session.close()
         return abort(400)
+
 
 @rtmp_bp.route('/auth-record', methods=['POST'])
 def record_auth_check():
     key = request.form['name']
-    sysSettings = settings.settings.query.first()
-    channelRequest = Channel.Channel.query.filter_by(channelLoc=key).first()
-    currentTime = datetime.datetime.now()
 
-    if channelRequest is not None:
-        userQuery = Sec.User.query.filter_by(id=channelRequest.owningUser).first()
-
-        if channelRequest.record is True and sysSettings.allowRecording is True and userQuery.has_role("Recorder"):
-            existingRecordingQuery = RecordedVideo.RecordedVideo.query.filter_by(channelID=channelRequest.id, pending=True).all()
-            if existingRecordingQuery:
-                for recording in existingRecordingQuery:
-                    db.session.delete(recording)
-                    db.session.commit()
-
-            newRecording = RecordedVideo.RecordedVideo(userQuery.id, channelRequest.id, channelRequest.channelName, channelRequest.topic, 0, "", currentTime, channelRequest.allowComments, False)
-            db.session.add(newRecording)
-            db.session.commit()
-
+    # Execute Video Recording Start Check
+    recStartRequest = requests.post(apiLocation + "/apiv1/rtmp/reccheck", data={'name': key})
+    if recStartRequest.status_code == '200':
+        recStartResponse = recStartRequest.json()
+        if recStartResponse['results']['success'] is True:
             return 'OK'
     return abort(400)
 
 @rtmp_bp.route('/deauth-user', methods=['POST'])
 def user_deauth_check():
-    sysSettings = settings.settings.query.first()
 
     key = request.form['name']
     ipaddress = request.form['addr']
 
-    authedStream = Stream.Stream.query.filter_by(streamKey=key).all()
-
-    channelRequest = Channel.Channel.query.filter_by(streamKey=key).first()
-
-    if authedStream is not []:
-        for stream in authedStream:
-            streamUpvotes = upvotes.streamUpvotes.query.filter_by(streamID=stream.id).all()
-            pendingVideo = RecordedVideo.RecordedVideo.query.filter_by(channelID=channelRequest.id, videoLocation="", pending=True).first()
-
-            if pendingVideo is not None:
-                pendingVideo.channelName = stream.streamName
-                pendingVideo.views = stream.totalViewers
-                pendingVideo.topic = stream.topic
-
-                for upvote in streamUpvotes:
-                    newVideoUpvote = upvotes.videoUpvotes(upvote.userID, pendingVideo.id)
-                    db.session.add(newVideoUpvote)
-                db.session.commit()
-
-            for vid in streamUpvotes:
-                db.session.delete(vid)
-            db.session.delete(stream)
-            db.session.commit()
+    # Execute Stream Close Request
+    streamCloseRequest = requests.post(apiLocation + "/apiv1/rtmp/streamclose", data={'name': key, 'addr': ipaddress})
+    if streamCloseRequest.status_code == '200':
+        streamCloseResponse = streamCloseRequest.json()
+        if streamCloseResponse['results']['success'] is True:
+            channelLocation = streamCloseResponse['results']['channelLoc']
 
             # End RTMP Restream Function
-            if channelRequest.restreamDestinations != []:
-                if channelRequest.channelLoc in globalvars.restreamSubprocesses:
-                    for restream in globalvars.restreamSubprocesses[channelRequest.channelLoc]:
-                        #p = globalvars.restreamSubprocesses[channelRequest.channelLoc][restream]
+            if channelLocation in globalvars.restreamSubprocesses:
+                for restream in globalvars.restreamSubprocesses[channelLocation]:
+                    restream.kill()
+                    try:
+                        restream.wait(timeout=30)
+                    except subprocess.TimeoutExpired:
                         restream.kill()
-                        try:
-                            restream.wait(timeout=30)
-                        except subprocess.TimeoutExpired:
-                            restream.kill()
-                            restream.wait(timeout=30)
-                try:
-                    del globalvars.restreamSubprocesses[channelRequest.channelLoc]
-                except KeyError:
-                    pass
+                        restream.wait(timeout=30)
+            try:
+                del globalvars.restreamSubprocesses[channelLocation]
+            except KeyError:
+                pass
 
-            if channelRequest.channelLoc in globalvars.edgeRestreamSubprocesses:
-                for p in globalvars.edgeRestreamSubprocesses[channelRequest.channelLoc]:
+            # End RTMP Edge Restreams
+            if channelLocation in globalvars.edgeRestreamSubprocesses:
+                for p in globalvars.edgeRestreamSubprocesses[channelLocation]:
                     p.kill()
                     try:
                         p.wait(timeout=30)
@@ -257,101 +149,28 @@ def user_deauth_check():
                         p.kill()
                         p.wait(timeout=30)
                 try:
-                    del globalvars.edgeRestreamSubprocesses[channelRequest.channelLoc]
+                    del globalvars.edgeRestreamSubprocesses[channelLocation]
                 except KeyError:
                     pass
 
-            returnMessage = {'time': str(datetime.datetime.now()), 'status': 'Stream Closed', 'key': str(key), 'channelName': str(channelRequest.channelName), 'userName':str(channelRequest.owningUser), 'ipAddress': str(ipaddress)}
-
-            print(returnMessage)
-
-            if channelRequest.imageLocation is None:
-                channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/static/img/video-placeholder.jpg")
-            else:
-                channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/images/" + channelRequest.imageLocation)
-
-            webhookFunc.runWebhook(channelRequest.id, 1, channelname=channelRequest.channelName,
-                       channelurl=(sysSettings.siteProtocol + sysSettings.siteAddress + "/channel/" + str(channelRequest.id)),
-                       channeltopic=channelRequest.topic,
-                       channelimage=channelImage, streamer=templateFilters.get_userName(channelRequest.owningUser),
-                       channeldescription=str(channelRequest.description),
-                       streamname=stream.streamName,
-                       streamurl=(sysSettings.siteProtocol + sysSettings.siteAddress + "/view/" + channelRequest.channelLoc),
-                       streamtopic=templateFilters.get_topicName(stream.topic),
-                       streamimage=(sysSettings.siteProtocol + sysSettings.siteAddress + "/stream-thumb/" + str(channelRequest.channelLoc) + ".png"))
-        return 'OK'
-    else:
-        returnMessage = {'time': str(datetime.datetime.now()), 'status': 'Stream Closure Failure - No Such Stream', 'key': str(key), 'ipAddress': str(ipaddress)}
-        print(returnMessage)
-        db.session.close()
-        return abort(400)
-
+            return 'OK'
+        else:
+            return abort(400)
+    return abort(400)
 
 @rtmp_bp.route('/deauth-record', methods=['POST'])
 def rec_Complete_handler():
     key = request.form['name']
     path = request.form['path']
 
-    sysSettings = settings.settings.query.first()
-
-    requestedChannel = Channel.Channel.query.filter_by(channelLoc=key).first()
-
-    pendingVideo = RecordedVideo.RecordedVideo.query.filter_by(channelID=requestedChannel.id, videoLocation="", pending=True).first()
-
-    videoPath = path.replace('/tmp/',requestedChannel.channelLoc + '/')
-    imagePath = videoPath.replace('.flv','.png')
-    gifPath = videoPath.replace('.flv', '.gif')
-    videoPath = videoPath.replace('.flv','.mp4')
-
-    pendingVideo.thumbnailLocation = imagePath
-    pendingVideo.videoLocation = videoPath
-    pendingVideo.gifLocation = gifPath
-
-    videos_root = current_app.config['WEB_ROOT'] + 'videos/'
-    fullVidPath = videos_root + videoPath
-
-    pendingVideo.pending = False
-
-    if requestedChannel.autoPublish is True:
-        pendingVideo.published = True
+    # Execute Recording Close Request
+    recCloseRequest = requests.post(apiLocation + "/apiv1/rtmp/recclose", data={'name': key, 'path': path})
+    if recCloseRequest.status_code == '200':
+        recCloseResponse = recCloseRequest.json()
+        if recCloseResponse['results']['success'] is True:
+            channelLocation = recCloseResponse['results']['channelLoc']
+            return 'OK'
+        else:
+            abort(400)
     else:
-        pendingVideo.published = False
-
-    db.session.commit()
-
-    if requestedChannel.imageLocation is None:
-        channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/static/img/video-placeholder.jpg")
-    else:
-        channelImage = (sysSettings.siteProtocol + sysSettings.siteAddress + "/images/" + requestedChannel.imageLocation)
-
-    if requestedChannel.autoPublish is True:
-        webhookFunc.runWebhook(requestedChannel.id, 6, channelname=requestedChannel.channelName,
-               channelurl=(sysSettings.siteProtocol + sysSettings.siteAddress + "/channel/" + str(requestedChannel.id)),
-               channeltopic=templateFilters.get_topicName(requestedChannel.topic),
-               channelimage=channelImage, streamer=templateFilters.get_userName(requestedChannel.owningUser),
-               channeldescription=str(requestedChannel.description), videoname=pendingVideo.channelName,
-               videodate=pendingVideo.videoDate, videodescription=pendingVideo.description,videotopic=templateFilters.get_topicName(pendingVideo.topic),
-               videourl=(sysSettings.siteProtocol + sysSettings.siteAddress + '/play/' + str(pendingVideo.id)),
-               videothumbnail=(sysSettings.siteProtocol + sysSettings.siteAddress + '/videos/' + str(pendingVideo.thumbnailLocation)))
-
-        subscriptionQuery = subscriptions.channelSubs.query.filter_by(channelID=requestedChannel.id).all()
-        for sub in subscriptionQuery:
-            # Create Notification for Channel Subs
-            newNotification = notifications.userNotification(templateFilters.get_userName(requestedChannel.owningUser) + " has posted a new video to " + requestedChannel.channelName + " titled " + pendingVideo.channelName, '/play/' + str(pendingVideo.id),
-                                                             "/images/" + str(requestedChannel.owner.pictureLocation), sub.userID)
-            db.session.add(newNotification)
-        db.session.commit()
-
-        subsFunc.processSubscriptions(requestedChannel.id, sysSettings.siteName + " - " + requestedChannel.channelName + " has posted a new video",
-                         "<html><body><img src='" + sysSettings.siteProtocol + sysSettings.siteAddress + sysSettings.systemLogo + "'><p>Channel " + requestedChannel.channelName + " has posted a new video titled <u>" + pendingVideo.channelName +
-                         "</u> to the channel.</p><p>Click this link to watch<br><a href='" + sysSettings.siteProtocol + sysSettings.siteAddress + "/play/" + str(pendingVideo.id) + "'>" + pendingVideo.channelName + "</a></p>")
-
-    while not os.path.exists(fullVidPath):
-        time.sleep(1)
-
-    if os.path.isfile(fullVidPath):
-        pendingVideo.length = videoFunc.getVidLength(fullVidPath)
-        db.session.commit()
-
-    db.session.close()
-    return 'OK'
+        abort(400)
