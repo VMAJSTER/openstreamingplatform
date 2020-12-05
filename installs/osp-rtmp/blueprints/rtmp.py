@@ -3,7 +3,7 @@ import requests
 
 from flask import Blueprint, request, redirect, current_app, abort
 
-from globals.globalvars import apiLocation
+from globals import globalvars
 
 rtmp_bp = Blueprint('rtmp', __name__)
 
@@ -14,7 +14,7 @@ def streamkey_check():
     ipaddress = request.form['addr']
 
     # Execute Stage 1 RTMP Authentication
-    stage1Request = requests.post(apiLocation + "/apiv1/rtmp/stage1", data={'name':key, 'addr': ipaddress})
+    stage1Request = requests.post(globalvars.apiLocation + "/apiv1/rtmp/stage1", data={'name':key, 'addr': ipaddress})
     if stage1Request.status_code == '200':
         stage1Reponse = stage1Request.json()
         if stage1Reponse['results']['success'] is True:
@@ -39,7 +39,7 @@ def user_auth_check():
     ipaddress = request.form['addr']
 
     # Execute Stage 2 RTMP Authentication
-    stage2Request = requests.post(apiLocation + "/apiv1/rtmp/stage2", data={'name': key, 'addr': ipaddress})
+    stage2Request = requests.post(globalvars.apiLocation + "/apiv1/rtmp/stage2", data={'name': key, 'addr': ipaddress})
     if stage2Request.status_code == '200':
         stage2Reponse = stage2Request.json()
         if stage2Reponse['results']['success'] is True:
@@ -48,14 +48,14 @@ def user_auth_check():
             inputLocation = "rtmp://127.0.0.1:1935/live/" + channelLocation
 
             # Validate OSP's System Settings
-            sysSettingsRequest = requests.get(apiLocation + "/apiv1/server")
+            sysSettingsRequest = requests.get(globalvars.apiLocation + "/apiv1/server")
             if sysSettingsRequest.status_code == '200':
                 sysSettingsResults = sysSettingsRequest.json()
             else:
                 abort(400)
 
             # Request a list of the Restream Destinations for a Channel via APIv1
-            restreamDataRequest = requests.get(apiLocation + "/apiv1/channel/" + channelLocation + "/restreams")
+            restreamDataRequest = requests.get(globalvars.apiLocation + "/apiv1/channel/" + channelLocation + "/restreams")
             if restreamDataRequest.status_code == '200':
                 restreamDataResults = restreamDataRequest.json()
                 globalvars.restreamSubprocesses[channelLocation] = []
@@ -71,7 +71,7 @@ def user_auth_check():
                         globalvars.restreamSubprocesses[channelLocation].append(p)
 
             # Request List of OSP Edge Servers to Send a Restream To
-            edgeNodeDataRequest = requests.get(apiLocation + "/apiv1/server/edges")
+            edgeNodeDataRequest = requests.get(globalvars.apiLocation + "/apiv1/server/edges")
             if edgeNodeDataRequest.status_code == '200':
                 edgeNodeDataResults = edgeNodeDataRequest.json()
                 globalvars.edgeRestreamSubprocesses[channelLocation] = []
@@ -105,7 +105,7 @@ def record_auth_check():
     key = request.form['name']
 
     # Execute Video Recording Start Check
-    recStartRequest = requests.post(apiLocation + "/apiv1/rtmp/reccheck", data={'name': key})
+    recStartRequest = requests.post(globalvars.apiLocation + "/apiv1/rtmp/reccheck", data={'name': key})
     if recStartRequest.status_code == '200':
         recStartResponse = recStartRequest.json()
         if recStartResponse['results']['success'] is True:
@@ -119,7 +119,7 @@ def user_deauth_check():
     ipaddress = request.form['addr']
 
     # Execute Stream Close Request
-    streamCloseRequest = requests.post(apiLocation + "/apiv1/rtmp/streamclose", data={'name': key, 'addr': ipaddress})
+    streamCloseRequest = requests.post(globalvars.apiLocation + "/apiv1/rtmp/streamclose", data={'name': key, 'addr': ipaddress})
     if streamCloseRequest.status_code == '200':
         streamCloseResponse = streamCloseRequest.json()
         if streamCloseResponse['results']['success'] is True:
@@ -164,7 +164,7 @@ def rec_Complete_handler():
     path = request.form['path']
 
     # Execute Recording Close Request
-    recCloseRequest = requests.post(apiLocation + "/apiv1/rtmp/recclose", data={'name': key, 'path': path})
+    recCloseRequest = requests.post(globalvars.apiLocation + "/apiv1/rtmp/recclose", data={'name': key, 'path': path})
     if recCloseRequest.status_code == '200':
         recCloseResponse = recCloseRequest.json()
         if recCloseResponse['results']['success'] is True:
