@@ -51,8 +51,9 @@ def user_auth_check():
             sysSettingsRequest = requests.get(globalvars.apiLocation + "/apiv1/server")
             if sysSettingsRequest.status_code == '200':
                 sysSettingsResults = sysSettingsRequest.json()
+                print("Got SysSettings")
             else:
-                abort(400)
+                return abort(400)
 
             test=True
             if test != True:
