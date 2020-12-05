@@ -75,6 +75,7 @@ class settings(db.Model):
             'allowUploads': self.allowUploads,
             'allowComments': self.allowComments,
             'version': self.version,
+            'restreamMaxBitRate': self.restreamMaxBitrate,
             'maxClipLength': self.maxClipLength,
             'protectionEnabled': self.protectionEnabled,
             'maintenanceMode': self.maintenanceMode
