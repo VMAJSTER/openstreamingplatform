@@ -15,18 +15,18 @@ def streamkey_check():
 
     # Execute Stage 1 RTMP Authentication
     stage1Request = requests.post(globalvars.apiLocation + "/apiv1/rtmp/stage1", data={'name':key, 'addr': ipaddress})
-    if stage1Request.status_code == '200':
-        stage1Reponse = stage1Request.json()
-        if stage1Reponse['results']['success'] is True:
-            channelLocation = stage1Reponse['results']['channelLoc']
+    if stage1Request.status_code == 200:
+        stage1Response = stage1Request.json()
+        if stage1Response['results']['success'] is True:
+            channelLocation = stage1Response['results']['channelLoc']
 
             # Redirect based on API Response of Stream Type and Expected Stage 2 Handoff
-            if stage1Reponse['results']['type'] == 'adaptive':
+            if stage1Response['results']['type'] == 'adaptive':
                 return redirect('rtmp://127.0.0.1/stream-data-adapt/' + channelLocation, code=302)
             else:
                 return redirect('rtmp://127.0.0.1/stream-data/' + channelLocation, code=302)
         else:
-            returnMessage = stage1Reponse
+            returnMessage = stage1Response
             print(returnMessage)
             return abort(400)
     else:
@@ -40,67 +40,60 @@ def user_auth_check():
 
     # Execute Stage 2 RTMP Authentication
     stage2Request = requests.post(globalvars.apiLocation + "/apiv1/rtmp/stage2", data={'name': key, 'addr': ipaddress})
-    if stage2Request.status_code == '200':
+    if stage2Request.status_code == 200:
         stage2Reponse = stage2Request.json()
         if stage2Reponse['results']['success'] is True:
 
             channelLocation = stage2Reponse['results']['channelLoc']
             inputLocation = "rtmp://127.0.0.1:1935/live/" + channelLocation
 
-            print("Stage2 Validated")
             # Validate OSP's System Settings
-            print("Getting SysSettings")
             sysSettingsRequest = requests.get(globalvars.apiLocation + "/apiv1/server")
-            print("Received Request")
-            if sysSettingsRequest.status_code == '200':
+            if sysSettingsRequest.status_code == 200:
                 sysSettingsResults = sysSettingsRequest.json()
-                print("Got SysSettings")
             else:
                 return abort(400)
 
-            test=True
-            if test != True:
-                # Request a list of the Restream Destinations for a Channel via APIv1
-                restreamDataRequest = requests.get(globalvars.apiLocation + "/apiv1/channel/" + channelLocation + "/restreams")
-                if restreamDataRequest.status_code == '200':
-                    restreamDataResults = restreamDataRequest.json()
-                    globalvars.restreamSubprocesses[channelLocation] = []
+            # Request a list of the Restream Destinations for a Channel via APIv1
+            restreamDataRequest = requests.get(globalvars.apiLocation + "/apiv1/channel/" + channelLocation + "/restreams")
+            if restreamDataRequest.status_code == 200:
+                restreamDataResults = restreamDataRequest.json()
+                globalvars.restreamSubprocesses[channelLocation] = []
 
-                    # Iterate Over Restream Destinations and Create ffmpeg Subprocess to Handle
-                    for destination in restreamDataResults['results']:
-                        if destination['enabled'] is True:
-                            p = subprocess.Popen(
-                                ["ffmpeg", "-i", inputLocation, "-c", "copy", "-f", "flv", destination['url'], "-c:v",
-                                 "libx264", "-maxrate", str(sysSettingsResults['results']['restreamMaxBitRate']) + "k", "-bufsize",
-                                 "6000k", "-c:a", "aac", "-b:a", "160k", "-ac", "2"], stdout=subprocess.DEVNULL,
-                                stderr=subprocess.DEVNULL)
-                            globalvars.restreamSubprocesses[channelLocation].append(p)
+                # Iterate Over Restream Destinations and Create ffmpeg Subprocess to Handle
+                for destination in restreamDataResults['results']:
+                    if destination['enabled'] is True:
+                        p = subprocess.Popen(
+                            ["ffmpeg", "-i", inputLocation, "-c", "copy", "-f", "flv", destination['url'], "-c:v",
+                             "libx264", "-maxrate", str(sysSettingsResults['results']['restreamMaxBitRate']) + "k", "-bufsize",
+                             "6000k", "-c:a", "aac", "-b:a", "160k", "-ac", "2"], stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL)
+                        globalvars.restreamSubprocesses[channelLocation].append(p)
 
-                # Request List of OSP Edge Servers to Send a Restream To
-                edgeNodeDataRequest = requests.get(globalvars.apiLocation + "/apiv1/server/edges")
-                if edgeNodeDataRequest.status_code == '200':
-                    edgeNodeDataResults = edgeNodeDataRequest.json()
-                    globalvars.edgeRestreamSubprocesses[channelLocation] = []
+            # Request List of OSP Edge Servers to Send a Restream To
+            edgeNodeDataRequest = requests.get(globalvars.apiLocation + "/apiv1/server/edges")
+            if edgeNodeDataRequest.status_code == 200:
+                edgeNodeDataResults = edgeNodeDataRequest.json()
+                globalvars.edgeRestreamSubprocesses[channelLocation] = []
 
-                    # Iterate Over Edge Node Results and Create ffmpeg Subprocess to Handle
-                    for node in edgeNodeDataResults['results']:
-                        if node['active'] is True and node['address'] != sysSettingsResults['siteAddress']:
-                            subprocessConstructor = ["ffmpeg", "-i", inputLocation, "-c", "copy"]
-                            subprocessConstructor.append("-f")
-                            subprocessConstructor.append("flv")
+                # Iterate Over Edge Node Results and Create ffmpeg Subprocess to Handle
+                for node in edgeNodeDataResults['results']:
+                    if node['active'] is True and node['address'] != sysSettingsResults['siteAddress']:
+                        subprocessConstructor = ["ffmpeg", "-i", inputLocation, "-c", "copy"]
+                        subprocessConstructor.append("-f")
+                        subprocessConstructor.append("flv")
 
-                            # Sets Destination Endpoint based on System Adaptive Streaming Results
-                            if sysSettingsResults['adaptiveStreaming'] is True:
-                                subprocessConstructor.append("rtmp://" + node.address + "/stream-data-adapt/" + channelLocation)
-                            else:
-                                subprocessConstructor.append("rtmp://" + node.address + "/stream-data/" + channelLocation)
+                        # Sets Destination Endpoint based on System Adaptive Streaming Results
+                        if sysSettingsResults['adaptiveStreaming'] is True:
+                            subprocessConstructor.append("rtmp://" + node.address + "/stream-data-adapt/" + channelLocation)
+                        else:
+                            subprocessConstructor.append("rtmp://" + node.address + "/stream-data/" + channelLocation)
 
-                            p = subprocess.Popen(subprocessConstructor, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                            globalvars.edgeRestreamSubprocesses[channelLocation].append(p)
-
-                else:
-                    return abort(400)
-            return 'OK'
+                        p = subprocess.Popen(subprocessConstructor, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        globalvars.edgeRestreamSubprocesses[channelLocation].append(p)
+                return 'OK'
+            else:
+                return abort(400)
         else:
             return abort(400)
     else:
@@ -113,7 +106,7 @@ def record_auth_check():
 
     # Execute Video Recording Start Check
     recStartRequest = requests.post(globalvars.apiLocation + "/apiv1/rtmp/reccheck", data={'name': key})
-    if recStartRequest.status_code == '200':
+    if recStartRequest.status_code == 200:
         recStartResponse = recStartRequest.json()
         if recStartResponse['results']['success'] is True:
             return 'OK'
@@ -127,7 +120,7 @@ def user_deauth_check():
 
     # Execute Stream Close Request
     streamCloseRequest = requests.post(globalvars.apiLocation + "/apiv1/rtmp/streamclose", data={'name': key, 'addr': ipaddress})
-    if streamCloseRequest.status_code == '200':
+    if streamCloseRequest.status_code == 200:
         streamCloseResponse = streamCloseRequest.json()
         if streamCloseResponse['results']['success'] is True:
             channelLocation = streamCloseResponse['results']['channelLoc']
@@ -172,7 +165,7 @@ def rec_Complete_handler():
 
     # Execute Recording Close Request
     recCloseRequest = requests.post(globalvars.apiLocation + "/apiv1/rtmp/recclose", data={'name': key, 'path': path})
-    if recCloseRequest.status_code == '200':
+    if recCloseRequest.status_code == 200:
         recCloseResponse = recCloseRequest.json()
         if recCloseResponse['results']['success'] is True:
             channelLocation = recCloseResponse['results']['channelLoc']
