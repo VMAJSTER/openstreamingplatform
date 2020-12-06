@@ -190,9 +190,26 @@ patch_request_class(app)
 # Initialize Flask-Markdown
 md = Markdown(app, extensions=['tables'])
 
-# Initialize Scheduler
+##############################################
+# Initialize Scheduler and Jobs
+##############################################
+
+# Updates Room Live Counts on Interval
+def checkRoomCounts():
+    channelQuery = Channel.Channel.query.all()
+    for chan in channelQuery:
+        count = xmpp.getChannelCounts(chan.channelLoc)
+        if chan.currentViewers != count:
+            chan.currentViewers = count
+            db.session.commit()
+        for liveStream in chan.stream:
+            if liveStream.currentViewers != count:
+                liveStream.currentViewers = count
+                db.session.commit()
+    db.session.commit()
+
 scheduler = BackgroundScheduler()
-#scheduler.add_job(func=processAllHubConnections, trigger="interval", seconds=180)
+scheduler.add_job(func=checkRoomCounts, trigger="interval", seconds=120)
 scheduler.start()
 
 # Initialize ejabberdctl
