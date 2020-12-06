@@ -8,6 +8,7 @@ from flask_restplus import Api, Resource, reqparse
 import shutil
 import uuid
 import datetime
+import socket
 
 from classes import Sec
 from classes import Channel
@@ -23,6 +24,21 @@ from classes.shared import db
 from functions import rtmpFunc
 
 from globals import globalvars
+
+def checkRTMPAuthIP(requestData):
+    authorized = False
+    if requestData.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        requestIP = requestData.environ['REMOTE_ADDR']
+    else:
+        requestIP = requestData.environ['HTTP_X_FORWARDED_FOR']
+    authorizedRTMPServers = settings.rtmpServer.query.all()
+    for server in authorizedRTMPServers:
+        if authorized is False:
+            resolveResults = socket.getaddrinfo(server.address, 0)
+            for resolved in resolveResults:
+                if requestIP == resolved[4][0]:
+                    authorized = True
+    return authorized
 
 class fixedAPI(Api):
     # Monkeyfixed API IAW https://github.com/noirbizarre/flask-restplus/issues/223
@@ -120,6 +136,10 @@ class api_1_Edges(Resource):
         """
             Displays a Listing of Edge Servers
         """
+        authorized = checkRTMPAuthIP(request)
+        if authorized is False:
+            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+
         edgeList = settings.edgeStreamer.query.all()
         db.session.commit()
         return {'results': [ob.serialize() for ob in edgeList]}
