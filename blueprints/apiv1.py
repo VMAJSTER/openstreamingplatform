@@ -268,16 +268,29 @@ class api_1_ListChannel(Resource):
                         return {'results': {'message': 'Channel Deleted'}}, 200
         return {'results': {'message': 'Request Error'}}, 400
 
-# TODO Add Authentication
 # TODO Add Ability to Add/Delete/Change
 @api.route('/channel/<string:channelEndpointID>/restreams')
+@api.doc(security='apikey')
 @api.doc(params={'channelEndpointID': 'GUID Channel Location'})
 class api_1_GetRestreams(Resource):
     def get(self, channelEndpointID):
         """
              Returns all restream destinations for a channel
         """
-        channelData = Channel.Channel.query.filter_by(channelLoc=channelEndpointID).first()
+
+        if 'X-API-KEY' in request.headers:
+            requestAPIKey = apikey.apikey.query.filter_by(key=request.headers['X-API-KEY']).first()
+            if requestAPIKey is not None:
+                if requestAPIKey.isValid():
+                    channelData = Channel.Channel.query.filter_by(channelLoc=channelEndpointID, owningUser=requestAPIKey.userID).first()
+
+        else:
+            # Perform RTMP IP Authorization Check
+            authorized = checkRTMPAuthIP(request)
+            if authorized is False:
+                return {'results': {'message': "Unauthorized RTMP Server or Missing User API Key"}}, 400
+
+            channelData = Channel.Channel.query.filter_by(channelLoc=channelEndpointID).first()
 
         if channelData is not None:
             restreamDestinations = channelData.restreamDestinations
