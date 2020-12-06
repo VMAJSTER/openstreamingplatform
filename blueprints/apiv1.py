@@ -136,9 +136,6 @@ class api_1_Edges(Resource):
         """
             Displays a Listing of Edge Servers
         """
-        authorized = checkRTMPAuthIP(request)
-        if authorized is False:
-            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
 
         edgeList = settings.edgeStreamer.query.all()
         db.session.commit()
@@ -618,7 +615,6 @@ class api_1_xmppisuser(Resource):
                     return {'results': {'message': 'Successful Authentication', 'code': 200}}, 200
         return {'results': {'message': 'Request Error', 'code':400}}, 400
 
-# TODO Add Authentication
 @api.route('/rtmp/stage1')
 @api.doc(params={'name': 'Stream Key of Channel', 'addr':'IP Address of Endpoint Making Request'})
 class api_1_rtmp_stage1(Resource):
@@ -628,6 +624,11 @@ class api_1_rtmp_stage1(Resource):
         """
         Initialize Stage 1 of RTMP Authentication
         """
+        # Perform RTMP IP Authorization Check
+        authorized = checkRTMPAuthIP(request)
+        if authorized is False:
+            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+
         args = rtmpStage1Auth.parse_args()
 
         if 'name' in args and 'addr' in args:
@@ -641,7 +642,6 @@ class api_1_rtmp_stage1(Resource):
         else:
             return {'results': {'time': str(datetime.datetime.now()), 'request': 'Stage1', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
 
-# TODO Add Authentication
 @api.route('/rtmp/stage2')
 @api.doc(params={'name': 'Channel Location of Channel Processed Under Stage 1', 'addr':'IP Address of Endpoint Making Request'})
 class api_1_rtmp_stage2(Resource):
@@ -651,6 +651,12 @@ class api_1_rtmp_stage2(Resource):
         """
         Initialize Stage 2 of RTMP Authentication
         """
+
+        # Perform RTMP IP Authorization Check
+        authorized = checkRTMPAuthIP(request)
+        if authorized is False:
+            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+
         args = rtmpStage2Auth.parse_args()
 
         if 'name' in args and 'addr' in args:
@@ -664,7 +670,6 @@ class api_1_rtmp_stage2(Resource):
         else:
             return {'results': {'time': str(datetime.datetime.now()), 'request': 'Stage2', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
 
-# TODO Add Authentication
 @api.route('/rtmp/reccheck')
 @api.doc(params={'name': 'Stream Key of Channel'})
 class api_1_rtmp_reccheck(Resource):
@@ -674,6 +679,12 @@ class api_1_rtmp_reccheck(Resource):
         """
         Initialize Recording Check for RTMP
         """
+
+        # Perform RTMP IP Authorization Check
+        authorized = checkRTMPAuthIP(request)
+        if authorized is False:
+            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+
         args = rtmpRecCheck.parse_args()
 
         if 'name' in args:
@@ -686,7 +697,6 @@ class api_1_rtmp_reccheck(Resource):
         else:
             return {'results': {'time': str(datetime.datetime.now()), 'request': 'RecordCheck', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
 
-# TODO Add Authentication
 @api.route('/rtmp/streamclose')
 @api.doc(params={'name': 'Stream Key of Channel', 'addr':'IP Address of Endpoint Making Request'})
 class api_1_rtmp_streamclose(Resource):
@@ -696,6 +706,12 @@ class api_1_rtmp_streamclose(Resource):
         """
         Close an Open Stream
         """
+
+        # Perform RTMP IP Authorization Check
+        authorized = checkRTMPAuthIP(request)
+        if authorized is False:
+            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+
         args = rtmpStreamClose.parse_args()
 
         if 'name' in args and 'addr' in args:
@@ -709,7 +725,6 @@ class api_1_rtmp_streamclose(Resource):
         else:
             return {'results': {'time': str(datetime.datetime.now()), 'request': 'StreamClose', 'success': False, 'channelLoc': None, 'type': None, 'ipAddress': None, 'message': 'Invalid Request'}}, 400
 
-# TODO Add Authentication
 @api.route('/rtmp/recclose')
 @api.doc(params={'name': 'Channel Location of Video to Close', 'path':'Nginx-rtmp Full Path of Preprocessed Video'})
 class api_1_rtmp_recclose(Resource):
@@ -719,6 +734,12 @@ class api_1_rtmp_recclose(Resource):
         """
         Finalize Processing of a Recorded Video
         """
+
+        # Perform RTMP IP Authorization Check
+        authorized = checkRTMPAuthIP(request)
+        if authorized is False:
+            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+
         args = rtmpRecClose.parse_args()
 
         if 'name' in args and 'path' in args:
