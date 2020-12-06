@@ -244,7 +244,6 @@ install_osp_rtmp() {
   sudo cp $DIR/installs/osp-rtmp/setup/nginx/services/*.conf /usr/local/nginx/conf/services
   sudo mkdir /opt/osp-rtmp
   sudo cp -R $DIR/installs/osp-rtmp/* /opt/osp-rtmp
-  sudo cp -R $DIR/classes/*.py /opt/osp-rtmp/classes
   sudo cp $DIR/installs/osp-rtmp/setup/gunicorn/osp-rtmp.service /etc/systemd/system/osp-rtmp.service
   sudo systemctl daemon-reload
   sudo systemctl enable osp-rtmp.service
@@ -403,7 +402,6 @@ upgrade_rtmp() {
   sudo cp -rf $DIR/installs/osp-rtmp/setup/nginx/servers/*.conf /usr/local/nginx/conf/servers
   sudo cp -rf $DIR/installs/osp-rtmp/setup/nginx/services/*.conf /usr/local/nginx/conf/services
   sudo cp -R $DIR/installs/osp-rtmp/* /opt/osp-rtmp
-  sudo cp -rf $DIR/classes/*.py /opt/osp-rtmp/classes
 }
 
 upgrade_ejabberd() {
