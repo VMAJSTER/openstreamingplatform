@@ -632,6 +632,21 @@ def admin_page():
             db.session.commit()
             return redirect(url_for('.admin_page', page="topics"))
 
+        elif settingType == "rtmpServer":
+            address = request.form['address']
+
+            existingServer = settings.rtmpServer.query.filter_by(address=address).first()
+
+            if existingServer is None:
+                newServer = settings.rtmpServer(address)
+                db.session.add(newServer)
+                db.session.commit()
+                flash("Server Added", "success")
+            else:
+                flash("Server Already Exists","error")
+
+            return redirect(url_for('.admin_page', page="osprtmp"))
+
         elif settingType == "edgeNode":
             address = request.form['address']
             port = request.form['edgePort']
