@@ -34,10 +34,11 @@ def checkRTMPAuthIP(requestData):
     authorizedRTMPServers = settings.rtmpServer.query.all()
     for server in authorizedRTMPServers:
         if authorized is False:
-            resolveResults = socket.getaddrinfo(server.address, 0)
-            for resolved in resolveResults:
-                if requestIP == resolved[4][0]:
-                    authorized = True
+            if server.active is True:
+                resolveResults = socket.getaddrinfo(server.address, 0)
+                for resolved in resolveResults:
+                    if requestIP == resolved[4][0]:
+                        authorized = True
     return authorized
 
 class fixedAPI(Api):
