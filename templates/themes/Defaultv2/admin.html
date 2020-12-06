@@ -478,7 +478,7 @@
                                             </thead>
                                             <tbody>
                                             {% for server in rtmpServers %}
-                                                <tr id="rtmpServer-{{ server.id }}">
+                                                <tr id="rtmpTableRow-{{ server.id }}">
                                                     <td>{{ server.address }}</td>
                                                     <td><input type="checkbox" data-toggle="toggle" data-width="50" data-on=" " data-off=" " id="activeRTMPNode" name="activeRTMPSelect" autocomplete="new-password"
                                                            {% if server.active == True %} checked {% endif %} onchange="toggleActiveRTMP('{{server.id}}');"></td>
