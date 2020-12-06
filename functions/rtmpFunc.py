@@ -217,7 +217,7 @@ def rtmp_rec_Complete_handler(channelLoc, path):
 
         pendingVideo = RecordedVideo.RecordedVideo.query.filter_by(channelID=requestedChannel.id, videoLocation="", pending=True).first()
 
-        videoPath = path.replace('/tmp/',requestedChannel.channelLoc + '/')
+        videoPath = path.replace('/tmp/', requestedChannel.channelLoc + '/')
         imagePath = videoPath.replace('.flv','.png')
         gifPath = videoPath.replace('.flv', '.gif')
         videoPath = videoPath.replace('.flv','.mp4')
