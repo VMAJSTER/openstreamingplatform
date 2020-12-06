@@ -365,6 +365,7 @@ def admin_page():
         channelList = Channel.Channel.query.all()
         streamList = Stream.Stream.query.all()
         topicsList = topics.topics.query.all()
+        rtmpServers = settings.rtmpServer.query.all()
         edgeNodes = settings.edgeStreamer.query.all()
 
         defaultRoles = {}
@@ -434,7 +435,7 @@ def admin_page():
                                remoteSHA=remoteSHA, themeList=themeList, statsViewsDay=statsViewsDay,
                                viewersTotal=viewersTotal, currentViewers=currentViewers, nginxStatData=nginxStatData,
                                globalHooks=globalWebhookQuery, defaultRoleDict=defaultRoles,
-                               logsList=logsList, edgeNodes=edgeNodes, oAuthProvidersList=oAuthProvidersList, ejabberdStatus=ejabberd, page=page)
+                               logsList=logsList, edgeNodes=edgeNodes, rtmpServers=rtmpServers, oAuthProvidersList=oAuthProvidersList, ejabberdStatus=ejabberd, page=page)
     elif request.method == 'POST':
 
         settingType = request.form['settingType']
