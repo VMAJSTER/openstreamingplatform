@@ -52,44 +52,7 @@
                     <a class="nav-link {% if page == 'backup' %} active {% endif %}" role="tab" id="admin-nav-backuprestore" href="#backuprestore" data-toggle="pill" aria-controls="admin-nav-backuprestore" aria-selected="false">Backup/Restore</a>
                 </li>
             </ul>
-            <div class="tab-pane fade {% if page == 'ospedge' %}show active{% endif %}" role="tabpanel" aria-labelledby="admin-content-edge" id="edgeSettings">
-                <h5>
-                    Authorized OSP-RTMP Servers
-                </h5>
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                List of Authorized OSP-RTMP Servers
-                                <span class="float-right"><button class="btn btn-sm btn-success shadow" type="button" data-toggle="modal" data-target="#newRTMPModal"><i class="fas fa-plus"></i></button></span><br>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table id="rtmpTable" class="table table-borderless" width="100%">
-                                        <thead>
-                                            <tr>
-                                                <th>RTMP Server Address</th>
-                                                <th>Active?</th>
-                                                <th>Options</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {% for server in rtmpServers %}
-                                            <tr id="rtmpServer-{{ server.id }}">
-                                                <td>{{ server.address }}</td>
-                                                <td><input type="checkbox" data-toggle="toggle" data-width="50" data-on=" " data-off=" " id="activeRTMPNode" name="activeRTMPSelect" autocomplete="new-password"
-                                                       {% if server.active == True %} checked {% endif %} onchange="toggleActiveRTMP('{{server.id}}');"></td>
-                                                <td><button type="button" class="btn btn-sm btn-danger" onclick="deleteRTMP('{{server.id}}')"><i class="far fa-trash-alt"></i></button></td>
-                                            </tr>
-                                        {%  endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             <div class="tab-content" id="admin-content">
                 <div class="tab-pane fade {% if page == None or page == 'dash' %}show active{% endif %}" role="tabpanel" aria-labelledby="admin-content-dashboard" id="dashboard">
                     <div class="container-fluid">
@@ -490,6 +453,44 @@
                           </form>
                         </div>
                       </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade {% if page == 'ospedge' %}show active{% endif %}" role="tabpanel" aria-labelledby="admin-content-rtmp" id="rtmpSettings">
+                    <h5>
+                        Authorized OSP-RTMP Servers
+                    </h5>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    List of Authorized OSP-RTMP Servers
+                                    <span class="float-right"><button class="btn btn-sm btn-success shadow" type="button" data-toggle="modal" data-target="#newRTMPModal"><i class="fas fa-plus"></i></button></span><br>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table id="rtmpTable" class="table table-borderless" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>RTMP Server Address</th>
+                                                    <th>Active?</th>
+                                                    <th>Options</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for server in rtmpServers %}
+                                                <tr id="rtmpServer-{{ server.id }}">
+                                                    <td>{{ server.address }}</td>
+                                                    <td><input type="checkbox" data-toggle="toggle" data-width="50" data-on=" " data-off=" " id="activeRTMPNode" name="activeRTMPSelect" autocomplete="new-password"
+                                                           {% if server.active == True %} checked {% endif %} onchange="toggleActiveRTMP('{{server.id}}');"></td>
+                                                    <td><button type="button" class="btn btn-sm btn-danger" onclick="deleteRTMP('{{server.id}}')"><i class="far fa-trash-alt"></i></button></td>
+                                                </tr>
+                                            {%  endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="tab-pane fade {% if page == 'ospedge' %}show active{% endif %}" role="tabpanel" aria-labelledby="admin-content-edge" id="edgeSettings">
