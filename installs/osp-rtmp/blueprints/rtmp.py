@@ -41,10 +41,10 @@ def user_auth_check():
     # Execute Stage 2 RTMP Authentication
     stage2Request = requests.post(globalvars.apiLocation + "/apiv1/rtmp/stage2", data={'name': key, 'addr': ipaddress})
     if stage2Request.status_code == 200:
-        stage2Reponse = stage2Request.json()
-        if stage2Reponse['results']['success'] is True:
+        stage2Response = stage2Request.json()
+        if stage2Response['results']['success'] is True:
 
-            channelLocation = stage2Reponse['results']['channelLoc']
+            channelLocation = stage2Response['results']['channelLoc']
             inputLocation = "rtmp://127.0.0.1:1935/live/" + channelLocation
 
             # Validate OSP's System Settings
@@ -69,6 +69,8 @@ def user_auth_check():
                              "6000k", "-c:a", "aac", "-b:a", "160k", "-ac", "2"], stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL)
                         globalvars.restreamSubprocesses[channelLocation].append(p)
+            else:
+                return abort(400)
 
             # Request List of OSP Edge Servers to Send a Restream To
             edgeNodeDataRequest = requests.get(globalvars.apiLocation + "/apiv1/server/edges")
