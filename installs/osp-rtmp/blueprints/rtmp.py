@@ -80,19 +80,20 @@ def user_auth_check():
 
                 # Iterate Over Edge Node Results and Create ffmpeg Subprocess to Handle
                 for node in edgeNodeDataResults['results']:
-                    if node['active'] is True and node['address'] != sysSettingsResults['results']['siteAddress']:
-                        subprocessConstructor = ["ffmpeg", "-i", inputLocation, "-c", "copy"]
-                        subprocessConstructor.append("-f")
-                        subprocessConstructor.append("flv")
+                    if node['active'] is True:
+                        if node['address'] != sysSettingsResults['results']['siteAddress']:
+                            subprocessConstructor = ["ffmpeg", "-i", inputLocation, "-c", "copy"]
+                            subprocessConstructor.append("-f")
+                            subprocessConstructor.append("flv")
 
-                        # Sets Destination Endpoint based on System Adaptive Streaming Results
-                        if sysSettingsResults['results']['adaptiveStreaming'] is True:
-                            subprocessConstructor.append("rtmp://" + node['address'] + "/stream-data-adapt/" + channelLocation)
-                        else:
-                            subprocessConstructor.append("rtmp://" + node['address'] + "/stream-data/" + channelLocation)
+                            # Sets Destination Endpoint based on System Adaptive Streaming Results
+                            if sysSettingsResults['results']['adaptiveStreaming'] is True:
+                                subprocessConstructor.append("rtmp://" + node['address'] + "/stream-data-adapt/" + channelLocation)
+                            else:
+                                subprocessConstructor.append("rtmp://" + node['address'] + "/stream-data/" + channelLocation)
 
-                        p = subprocess.Popen(subprocessConstructor, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                        globalvars.edgeRestreamSubprocesses[channelLocation].append(p)
+                            p = subprocess.Popen(subprocessConstructor, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            globalvars.edgeRestreamSubprocesses[channelLocation].append(p)
                 return 'OK'
             else:
                 return abort(400)
