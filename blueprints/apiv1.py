@@ -32,14 +32,19 @@ def checkRTMPAuthIP(requestData):
         requestIP = requestData.environ['REMOTE_ADDR']
     else:
         requestIP = requestData.environ['HTTP_X_FORWARDED_FOR']
+
     authorizedRTMPServers = settings.rtmpServer.query.all()
-    for server in authorizedRTMPServers:
-        if authorized is False:
-            if server.active is True:
-                resolveResults = socket.getaddrinfo(server.address, 0)
-                for resolved in resolveResults:
-                    if requestIP == resolved[4][0]:
-                        authorized = True
+
+    requestIP = requestIP.split(',')
+    for ip in requestIP:
+        parsedip = ip.strip()
+        for server in authorizedRTMPServers:
+            if authorized is False:
+                if server.active is True:
+                    resolveResults = socket.getaddrinfo(server.address, 0)
+                    for resolved in resolveResults:
+                        if parsedip == resolved[4][0]:
+                            authorized = True
     return (authorized, requestIP)
 
 class fixedAPI(Api):
