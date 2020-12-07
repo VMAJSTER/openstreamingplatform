@@ -134,6 +134,7 @@ from functions import securityFunc
 from functions import votes
 from functions import webhookFunc
 from functions.ejabberdctl import ejabberdctl
+from functions import xmpp as xmppfunc
 #----------------------------------------------------------------------------#
 # Begin App Initialization
 #----------------------------------------------------------------------------#
@@ -198,7 +199,7 @@ md = Markdown(app, extensions=['tables'])
 def checkRoomCounts():
     channelQuery = Channel.Channel.query.all()
     for chan in channelQuery:
-        count = xmpp.getChannelCounts(chan.channelLoc)
+        count = xmppfunc.getChannelCounts(chan.channelLoc)
         if chan.currentViewers != count:
             chan.currentViewers = count
             db.session.commit()
