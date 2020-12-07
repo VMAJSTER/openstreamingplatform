@@ -92,7 +92,10 @@ def user_auth_check():
                             else:
                                 subprocessConstructor.append("rtmp://" + node['address'] + "/stream-data/" + channelLocation)
 
-                            print("Open ffmpeg subprocess node - " + str(subprocessConstructor))
+                            testString = ""
+                            for item in subprocessConstructor:
+                                testString = testString + item + " "
+                            print("Open ffmpeg subprocess node - " + str(testString))
                             p = subprocess.Popen(subprocessConstructor, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                             globalvars.edgeRestreamSubprocesses[channelLocation].append(p)
                 return 'OK'
