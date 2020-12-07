@@ -27,6 +27,7 @@ from globals import globalvars
 
 def checkRTMPAuthIP(requestData):
     authorized = False
+    requestIP = "0.0.0.0"
     if requestData.environ.get('HTTP_X_FORWARDED_FOR') is None:
         requestIP = requestData.environ['REMOTE_ADDR']
     else:
@@ -39,7 +40,7 @@ def checkRTMPAuthIP(requestData):
                 for resolved in resolveResults:
                     if requestIP == resolved[4][0]:
                         authorized = True
-    return authorized
+    return (authorized, requestIP)
 
 class fixedAPI(Api):
     # Monkeyfixed API IAW https://github.com/noirbizarre/flask-restplus/issues/223
@@ -288,8 +289,8 @@ class api_1_GetRestreams(Resource):
         else:
             # Perform RTMP IP Authorization Check
             authorized = checkRTMPAuthIP(request)
-            if authorized is False:
-                return {'results': {'message': "Unauthorized RTMP Server or Missing User API Key"}}, 400
+            if authorized[0] is False:
+                return {'results': {'message': "Unauthorized RTMP Server or Missing User API Key - " + authorized[1]}}, 400
 
             channelData = Channel.Channel.query.filter_by(channelLoc=channelEndpointID).first()
 
@@ -640,8 +641,8 @@ class api_1_rtmp_stage1(Resource):
         """
         # Perform RTMP IP Authorization Check
         authorized = checkRTMPAuthIP(request)
-        if authorized is False:
-            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+        if authorized[0] is False:
+            return {'results': {'message':"Unauthorized RTMP Server - " + authorized[1]}}, 400
 
         args = rtmpStage1Auth.parse_args()
 
@@ -668,8 +669,8 @@ class api_1_rtmp_stage2(Resource):
 
         # Perform RTMP IP Authorization Check
         authorized = checkRTMPAuthIP(request)
-        if authorized is False:
-            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+        if authorized[0] is False:
+            return {'results': {'message':"Unauthorized RTMP Server - " + authorized[1]}}, 400
 
         args = rtmpStage2Auth.parse_args()
 
@@ -696,8 +697,8 @@ class api_1_rtmp_reccheck(Resource):
 
         # Perform RTMP IP Authorization Check
         authorized = checkRTMPAuthIP(request)
-        if authorized is False:
-            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+        if authorized[0] is False:
+            return {'results': {'message':"Unauthorized RTMP Server - " + authorized[1]}}, 400
 
         args = rtmpRecCheck.parse_args()
 
@@ -723,8 +724,8 @@ class api_1_rtmp_streamclose(Resource):
 
         # Perform RTMP IP Authorization Check
         authorized = checkRTMPAuthIP(request)
-        if authorized is False:
-            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+        if authorized[0] is False:
+            return {'results': {'message':"Unauthorized RTMP Server -" + authorized[1]}}, 400
 
         args = rtmpStreamClose.parse_args()
 
@@ -751,8 +752,8 @@ class api_1_rtmp_recclose(Resource):
 
         # Perform RTMP IP Authorization Check
         authorized = checkRTMPAuthIP(request)
-        if authorized is False:
-            return {'results': {'message':"Unauthorized RTMP Server"}}, 400
+        if authorized[0] is False:
+            return {'results': {'message':"Unauthorized RTMP Server - " + authorized[1]}}, 400
 
         args = rtmpRecClose.parse_args()
 
