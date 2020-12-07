@@ -104,7 +104,7 @@ class edgeStreamer(db.Model):
         return {
             'id': self.id,
             'address': self.address,
-            'customPort': self.customPort,
+            'port': self.port,
             'active': self.active,
             'status': self.status,
             'loadPct': self.loadPct
