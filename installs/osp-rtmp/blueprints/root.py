@@ -7,7 +7,4 @@ def playback_auth_handler():
     stream = request.form['name']
     clientIP = request.form['addr']
 
-    if clientIP == "127.0.0.1" or clientIP == "localhost":
-        return 'OK'
-    else:
-        return abort(400)
+    return 'OK'
