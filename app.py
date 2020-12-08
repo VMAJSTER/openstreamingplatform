@@ -197,9 +197,14 @@ md = Markdown(app, extensions=['tables'])
 
 # Updates Room Live Counts on Interval
 def checkRoomCounts():
+    sysSettings = settings.settings.query.first()
     channelQuery = Channel.Channel.query.all()
     for chan in channelQuery:
-        count = xmppfunc.getChannelCounts(chan.channelLoc)
+
+        roomOccupantsJSON = ejabberd.get_room_occupants_number(chan.channelLoc, "conference." + sysSettings.siteAddress)
+        currentViewers = roomOccupantsJSON['occupants']
+
+        count = currentViewers
         if chan.currentViewers != count:
             chan.currentViewers = count
             db.session.commit()
