@@ -134,7 +134,6 @@ from functions import securityFunc
 from functions import votes
 from functions import webhookFunc
 from functions.ejabberdctl import ejabberdctl
-from functions import xmpp as xmppfunc
 #----------------------------------------------------------------------------#
 # Begin App Initialization
 #----------------------------------------------------------------------------#
