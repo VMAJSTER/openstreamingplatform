@@ -214,7 +214,7 @@ def checkRoomCounts():
     db.session.commit()
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=checkRoomCounts, trigger="interval", seconds=120)
+#scheduler.add_job(func=checkRoomCounts, trigger="interval", seconds=120)
 scheduler.start()
 
 # Initialize ejabberdctl
